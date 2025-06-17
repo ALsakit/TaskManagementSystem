@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "17b504fd-ffc3-4edf-902c-e4fec456a1e2": {
+      "ProjectGuid": "17b504fd-ffc3-4edf-902c-e4fec456a1e2",
+      "DisplayName": "TaskManagementSystem.API",
+      "ColorIndex": 0
+    },
+    "f3347bbe-db7f-44ba-b19e-9699409634c2": {
+      "ProjectGuid": "f3347bbe-db7f-44ba-b19e-9699409634c2",
+      "DisplayName": "TaskManagementSystem.MVC",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}
