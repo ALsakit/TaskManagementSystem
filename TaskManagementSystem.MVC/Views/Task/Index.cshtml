@@ -1,0 +1,61 @@
+﻿@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
+@{
+    ViewData["Title"] = "قائمة المهام";
+  //  var role = Context.Session.GetString("UserRole");
+}
+
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold">قائمة المهام</h2>
+        <a asp-action="Create" class="btn-primary">+ مهمة جديدة</a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-4 py-2 text-right">العنوان</th>
+                    <th class="px-4 py-2 text-right">الأولوية</th>
+                    <th class="px-4 py-2 text-right">النظام</th>
+                    <th class="px-4 py-2 text-right">الحالة</th>
+                    <th class="px-4 py-2 text-right">الموظف المسؤول</th>
+                    <th class="px-4 py-2 text-right">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in Model)
+                {
+                    <tr class="border-b">
+                        <td class="px-4 py-2 text-right">@task.Title</td>
+                        <td class="px-4 py-2 text-right">@task.Priority</td>
+                        <td class="px-4 py-2 text-right">@task.System</td>
+                        <td class="px-4 py-2 text-right">
+                            @if (task.Status == "Overdue")
+                            {
+                                <span class="text-red-600 font-semibold">@task.Status</span>
+                            }
+                            else if (task.Status == "Completed")
+                            {
+                                <span class="text-green-600 font-semibold">@task.Status</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-700">@task.Status</span>
+                            }
+                        </td>
+                        <td class="px-4 py-2 text-right">@task.AssignedToName</td>
+                        <td class="px-4 py-2 text-right space-x-2">
+                            <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-500 hover:underline">تعديل</a>
+                            @*@if (role == "Manager" || role == "Admin")
+                            {
+                                <form asp-action="Delete" asp-route-id="@task.Id" method="post" class="inline" onsubmit="return confirm('هل متأكد من الحذف؟');">
+                                    <button type="submit" class="text-red-500 hover:underline">حذف</button>
+                                </form>
+                            }*@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

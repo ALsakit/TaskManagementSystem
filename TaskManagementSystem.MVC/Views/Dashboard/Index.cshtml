@@ -1,0 +1,78 @@
+﻿@model TaskManagementSystem.MVC.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "لوحة التقارير";
+}
+
+<div class="card">
+    <h2 class="text-2xl font-semibold mb-4">لوحة التقارير</h2>
+    
+    <!-- عدد المهام حسب الحالة -->
+    <div class="mb-6">
+        <h3 class="text-xl font-medium mb-2">عدد المهام حسب الحالة</h3>
+        <div class="w-full h-64">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- متوسط زمن التنفيذ -->
+    <div class="mb-6">
+        <h3 class="text-xl font-medium mb-2">متوسط زمن التنفيذ (دقائق)</h3>
+        <p class="text-lg font-semibold">@Model.AverageDuration.AverageMinutes.ToString("F1") دقيقة</p>
+    </div>
+
+    <!-- أداء الموظفين -->
+    <div>
+        <h3 class="text-xl font-medium mb-2">أداء الموظفين</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-right">الموظف</th>
+                        <th class="px-4 py-2 text-right">الإجمالي</th>
+                        <th class="px-4 py-2 text-right">المنجز في الوقت</th>
+                        <th class="px-4 py-2 text-right">المتأخرة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.UserPerformances)
+                    {
+                        <tr class="border-b">
+                            <td class="px-4 py-2 text-right">@u.UserName</td>
+                            <td class="px-4 py-2 text-right">@u.Total</td>
+                            <td class="px-4 py-2 text-right">@u.CompletedOnTime</td>
+                            <td class="px-4 py-2 text-right">@u.OverdueCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusCounts.Select(s => s.Status)));
+        const dataVals = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusCounts.Select(s => s.Count)));
+
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'عدد المهام',
+                    data: dataVals
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,62 @@
+﻿@model TaskManagementSystem.MVC.Models.TaskViewModel
+@{
+    ViewData["Title"] = "تعديل مهمة";
+}
+
+<div class="card">
+    <h2 class="text-2xl font-semibold mb-4">تعديل مهمة</h2>
+    <form asp-action="Edit" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <input asp-for="Id" type="hidden" />
+        <div>
+            <label asp-for="Title" class="block mb-1 font-medium text-gray-700">عنوان المهمة</label>
+            <input asp-for="Title" class="input-field" />
+            <span asp-validation-for="Title" class="text-red-600 text-sm"></span>
+        </div>
+        <div>
+            <label asp-for="Priority" class="block mb-1 font-medium text-gray-700">الأولوية</label>
+            <select asp-for="Priority" class="input-field">
+                <option value="Low" selected="@(Model.Priority == "Low")">Low</option>
+<option value="Medium" selected="@(Model.Priority == "Medium")">Medium</option>
+<option value="High" selected="@(Model.Priority == "High")">High</option>
+
+            </select>
+            <span asp-validation-for="Priority" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="md:col-span-2">
+            <label asp-for="Description" class="block mb-1 font-medium text-gray-700">الوصف</label>
+            <textarea asp-for="Description" class="input-field" rows="3"></textarea>
+        </div>
+        <div>
+            <label asp-for="System" class="block mb-1 font-medium text-gray-700">النظام المرتبط</label>
+            <input asp-for="System" class="input-field" />
+        </div>
+        <div>
+            <label asp-for="DueDate" class="block mb-1 font-medium text-gray-700">تاريخ الاستحقاق</label>
+            <input asp-for="DueDate" type="date" class="input-field" value="@(Model.DueDate?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div>
+            <label asp-for="Status" class="block mb-1 font-medium text-gray-700">الحالة</label>
+            <select asp-for="Status" class="input-field">
+               @* <option value="Pending" @(Model.Status == "Pending" ? "selected" : "")>Pending</option>
+                <option value="InProgress" @(Model.Status == "InProgress" ? "selected" : "")>InProgress</option>
+                <option value="Completed" @(Model.Status == "Completed" ? "selected" : "")>Completed</option>
+                <option value="Overdue" @(Model.Status == "Overdue" ? "selected" : "")>Overdue</option>*@
+            </select>
+        </div>
+        <div class="md:col-span-2">
+            <label asp-for="AssignedToUserId" class="block mb-1 font-medium text-gray-700">تعيين إلى</label>
+            <select asp-for="AssignedToUserId" asp-items="Model.Employees" class="input-field">
+                <option value="">-- اختر موظفًا --</option>
+            </select>
+            <span asp-validation-for="AssignedToUserId" class="text-red-600 text-sm"></span>
+        </div>
+        <div class="md:col-span-2 flex space-x-2 justify-start">
+            <button type="submit" class="btn-primary">حفظ التعديلات</button>
+            <a asp-action="Index" class="btn-secondary">إلغاء</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
