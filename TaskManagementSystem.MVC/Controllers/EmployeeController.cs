@@ -1,0 +1,119 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using TaskManagementSystem.MVC.Helpers;
+using TaskManagementSystem.MVC.Models;
+namespace TaskManagementSystem.MVC.Controllers
+{
+    public class EmployeeController : Controller
+    {
+        private readonly ApiClientFactory _apiClientFactory;
+        private readonly ILogger _logger;
+        //public EmployeeController(ApiClientFactory apiClientFactory )
+        //{
+        //    _apiClientFactory = apiClientFactory;
+        //}
+        public EmployeeController(ApiClientFactory apiClientFactory, ILogger<EmployeeController> logger)
+        {
+            _apiClientFactory = apiClientFactory;
+            _logger = logger;
+            if (_apiClientFactory == null)
+                _logger.LogError("ApiClientFactory is null!");
+        }
+
+        // GET: /Employee/Index
+        //public async Task<IActionResult> Index()
+        //{
+        //    var client = _apiClientFactory.CreateClient();
+        //    var response = await client.GetAsync("User");
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        // يمكن عرض رسالة خطأ أو قائمة فارغة
+        //        ViewData["Error"] = "فشل جلب الموظفين.";
+        //        return View(new List<EmployeeViewModel>());
+        //    }
+        //    var json = await response.Content.ReadAsStringAsync();
+        //    var employees = JsonConvert.DeserializeObject<List<EmployeeViewModel>>(json);
+        //    return View(employees);
+        //}
+        public async Task<IActionResult> Index()
+        {
+            var client = _apiClientFactory.CreateClient();
+            HttpResponseMessage response;
+            try
+            {
+                response = await client.GetAsync("User");
+            }
+            catch (Exception ex)
+            {
+                // سجل الخطأ عبر ILogger أو ViewData
+                ViewData["Error"] = "فشل الاتصال بالـ API: " + ex.Message;
+                return View(new List<EmployeeViewModel>());
+            }
+
+            if (response == null)
+            {
+                ViewData["Error"] = "لم يستلم رد من الخادم.";
+                return View(new List<EmployeeViewModel>());
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                // قراءة رسالة الخطأ من الخادم
+                var err = await response.Content.ReadAsStringAsync();
+                ViewData["Error"] = $"فشل جلب الموظفين: {response.StatusCode}. {err}";
+                return View(new List<EmployeeViewModel>());
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            List<EmployeeViewModel> employees;
+            try
+            {
+                employees = JsonConvert.DeserializeObject<List<EmployeeViewModel>>(json);
+            }
+            catch (Exception ex)
+            {
+                ViewData["Error"] = "خطأ في تحليل بيانات الموظفين: " + ex.Message;
+                return View(new List<EmployeeViewModel>());
+            }
+            return View(employees);
+        }
+        [HttpGet]
+        public IActionResult Create()
+        {
+            var vm = new EmployeeCreateViewModel();
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(EmployeeCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var client = _apiClientFactory.CreateClient();
+            var toSend = new
+            {
+                Name = model.Name,
+                Email = model.Email,
+                Password = model.Password,
+                Role = model.Role
+            };
+            var json = JsonConvert.SerializeObject(toSend);
+            var resp = await client.PostAsync("User", new StringContent(json, Encoding.UTF8, "application/json"));
+            if (!resp.IsSuccessStatusCode)
+            {
+                var err = await resp.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"خطأ من الخادم: {err}");
+                return View(model);
+            }
+            TempData["SuccessMessage"] = "تم إضافة الموظف.";
+            return RedirectToAction("Index");
+        }
+
+
+
+    }
+}

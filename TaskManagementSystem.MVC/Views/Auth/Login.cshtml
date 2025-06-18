@@ -1,0 +1,21 @@
+﻿@model TaskManagementSystem.MVC.Models.LoginViewModel
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+}
+<h2>تسجيل الدخول</h2>
+<form asp-action="Login" method="post">
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">كلمة المرور</label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">دخول</button>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

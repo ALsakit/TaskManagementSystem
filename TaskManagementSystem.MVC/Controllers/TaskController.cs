@@ -1,71 +1,323 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.AspNetCore.Mvc.Rendering;
+//using Newtonsoft.Json;
+//using TaskManagementSystem.MVC.Models;
+
+//namespace TaskManagementSystem.MVC.Controllers
+//{
+//    public class TaskController : Controller
+//    {
+//        //private object _apiClientFactory;
+
+//        public IActionResult Index()
+//        {
+//            var emptyList = new List<TaskViewModel>(); // أو اجلبها من API لاحقًا
+//            return View(emptyList); // ✅ هذا يحل الخطأ
+//        }
+//        public async Task<IActionResult> Create()
+//        {
+//            var model = new TaskViewModel();
+
+//            // إعداد القوائم المنسدلة (الأولوية، الحالة، الموظفين...)
+//            PopulateDropdowns(model);
+
+//            // مثال: إعداد قائمة الموظفين بشكل مؤقت (لأنك لم تربط API بعد)
+//            model.Employees = new List<SelectListItem>
+//    {
+//        new SelectListItem { Value = "1", Text = "سارة أحمد" },
+//        new SelectListItem { Value = "2", Text = "محمد علي" },
+//        new SelectListItem { Value = "3", Text = "فاطمة حسن" }
+//    };
+
+//            return View(model); // ✅ تم تمرير كائن من النوع الصحيح
+//        }
+
+
+//        [HttpGet]
+//        //public async Task<IActionResult> Edit(int id)
+//        //{
+//        //    var client = _apiClientFactory.CreateClient();
+//        //    var resp = await client.GetAsync($"Task/{id}");
+//        //    if (!resp.IsSuccessStatusCode)
+//        //        return RedirectToAction("Index");
+
+//        //    var json = await resp.Content.ReadAsStringAsync();
+//        //    var model = JsonConvert.DeserializeObject<TaskViewModel>(json);
+
+//        //    PopulateDropdowns(model);
+
+//        //    // جلب الموظفين
+//        //    var resp2 = await client.GetAsync("User");
+//        //    if (resp2.IsSuccessStatusCode)
+//        //    {
+//        //        var usersJson = await resp2.Content.ReadAsStringAsync();
+//        //        var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+//        //        model.Employees = users.Select(u => new SelectListItem
+//        //        {
+//        //            Value = u.Id.ToString(),
+//        //            Text = u.Name
+//        //        }).ToList();
+//        //    }
+//        //    else
+//        //    {
+//        //        model.Employees = new List<SelectListItem>();
+//        //    }
+
+//        //    return View(model);
+//        //}
+
+//        private void PopulateDropdowns(TaskViewModel model)
+//        {
+//            model.PriorityOptions = new List<SelectListItem>
+//    {
+//        new SelectListItem { Value = "Low", Text = "Low" },
+//        new SelectListItem { Value = "Medium", Text = "Medium" },
+//        new SelectListItem { Value = "High", Text = "High" }
+//    };
+
+//            model.StatusOptions = new List<SelectListItem>
+//    {
+//        new SelectListItem { Value = "Pending", Text = "Pending" },
+//        new SelectListItem { Value = "InProgress", Text = "In Progress" },
+//        new SelectListItem { Value = "Completed", Text = "Completed" },
+//        new SelectListItem { Value = "Overdue", Text = "Overdue" }
+//    };
+//        }
+//    }
+
+
+//}
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using TaskManagementSystem.MVC.Helpers;
 using TaskManagementSystem.MVC.Models;
 
 namespace TaskManagementSystem.MVC.Controllers
 {
     public class TaskController : Controller
     {
-        private object _apiClientFactory;
+        private readonly ApiClientFactory _apiClientFactory;
 
-        public IActionResult Index()
+        public TaskController(ApiClientFactory apiClientFactory)
         {
-            var emptyList = new List<TaskViewModel>(); // أو اجلبها من API لاحقًا
-            return View(emptyList); // ✅ هذا يحل الخطأ
+            _apiClientFactory = apiClientFactory;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var client = _apiClientFactory.CreateClient();
+            var response = await client.GetAsync("Task");
+            if (!response.IsSuccessStatusCode)
+                return View(new List<TaskViewModel>());
+
+            var json = await response.Content.ReadAsStringAsync();
+            var tasks = JsonConvert.DeserializeObject<List<TaskViewModel>>(json);
+            return View(tasks);
         }
 
         [HttpGet]
-        //public async Task<IActionResult> Edit(int id)
-        //{
-        //    var client = _apiClientFactory.CreateClient();
-        //    var resp = await client.GetAsync($"Task/{id}");
-        //    if (!resp.IsSuccessStatusCode)
-        //        return RedirectToAction("Index");
-
-        //    var json = await resp.Content.ReadAsStringAsync();
-        //    var model = JsonConvert.DeserializeObject<TaskViewModel>(json);
-
-        //    PopulateDropdowns(model);
-
-        //    // جلب الموظفين
-        //    var resp2 = await client.GetAsync("User");
-        //    if (resp2.IsSuccessStatusCode)
-        //    {
-        //        var usersJson = await resp2.Content.ReadAsStringAsync();
-        //        var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
-        //        model.Employees = users.Select(u => new SelectListItem
-        //        {
-        //            Value = u.Id.ToString(),
-        //            Text = u.Name
-        //        }).ToList();
-        //    }
-        //    else
-        //    {
-        //        model.Employees = new List<SelectListItem>();
-        //    }
-
-        //    return View(model);
-        //}
-
-        private void PopulateDropdowns(TaskViewModel model)
+        public async Task<IActionResult> Create()
         {
+            var vm = new TaskViewModel();
+            // جلب الموظفين
+            var client = _apiClientFactory.CreateClient();
+            var resp = await client.GetAsync("User");
+            if (resp.IsSuccessStatusCode)
+            {
+                var usersJson = await resp.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                vm.Employees = users.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Name
+                }).ToList();
+            }
+            else
+            {
+                vm.Employees = new List<SelectListItem>();
+            }
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(TaskViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // أعد جلب الموظفين
+                var client2 = _apiClientFactory.CreateClient();
+                var resp2 = await client2.GetAsync("User");
+                if (resp2.IsSuccessStatusCode)
+                {
+                    var usersJson = await resp2.Content.ReadAsStringAsync();
+                    var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                    model.Employees = users.Select(u => new SelectListItem
+                    {
+                        Value = u.Id.ToString(),
+                        Text = u.Name
+                    }).ToList();
+                }
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+            // جهّز بيانات الإرسال: كائن TaskItem JSON
+            var toSend = new TaskItemForPost
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId
+            };
+            var json = JsonConvert.SerializeObject(toSend);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("Task", content);
+            if (response.IsSuccessStatusCode)
+                return RedirectToAction("Index");
+
+            ModelState.AddModelError("", "حدث خطأ أثناء إنشاء المهمة.");
+            // أعد جلب الموظفين
+            var resp3 = await client.GetAsync("User");
+            if (resp3.IsSuccessStatusCode)
+            {
+                var usersJson = await resp3.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                model.Employees = users.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Name
+                }).ToList();
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var resp = await client.GetAsync($"Task/{id}");
+            if (!resp.IsSuccessStatusCode)
+                return RedirectToAction("Index");
+
+            var json = await resp.Content.ReadAsStringAsync();
+            var model = JsonConvert.DeserializeObject<TaskViewModel>(json);
+
+            // جلب الموظفين
+            var resp2 = await client.GetAsync("User");
+            if (resp2.IsSuccessStatusCode)
+            {
+                var usersJson = await resp2.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                model.Employees = users.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Name
+                }).ToList();
+            }
+            else
+            {
+                model.Employees = new List<SelectListItem>();
+            }
             model.PriorityOptions = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Low", Text = "Low" },
-        new SelectListItem { Value = "Medium", Text = "Medium" },
-        new SelectListItem { Value = "High", Text = "High" }
-    };
+{
+    new SelectListItem { Value = "Low", Text = "Low" },
+    new SelectListItem { Value = "Medium", Text = "Medium" },
+    new SelectListItem { Value = "High", Text = "High" }
+};
 
             model.StatusOptions = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Pending", Text = "Pending" },
-        new SelectListItem { Value = "InProgress", Text = "In Progress" },
-        new SelectListItem { Value = "Completed", Text = "Completed" },
-        new SelectListItem { Value = "Overdue", Text = "Overdue" }
-    };
+{
+    new SelectListItem { Value = "Pending", Text = "Pending" },
+    new SelectListItem { Value = "InProgress", Text = "In Progress" },
+    new SelectListItem { Value = "Completed", Text = "Completed" },
+    new SelectListItem { Value = "Overdue", Text = "Overdue" }
+};
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(TaskViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var client0 = _apiClientFactory.CreateClient();
+                var resp0 = await client0.GetAsync("User");
+                if (resp0.IsSuccessStatusCode)
+                {
+                    var usersJson = await resp0.Content.ReadAsStringAsync();
+                    var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                    model.Employees = users.Select(u => new SelectListItem
+                    {
+                        Value = u.Id.ToString(),
+                        Text = u.Name
+                    }).ToList();
+                }
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+            var toSend = new TaskItemForPost // نستخدم نفس DTO لسهولة النقل
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                Status = model.Status,
+                Id = model.Id
+            };
+            var json = JsonConvert.SerializeObject(toSend);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PutAsync($"Task/{model.Id}", content);
+            if (response.IsSuccessStatusCode)
+                return RedirectToAction("Index");
+
+            ModelState.AddModelError("", "حدث خطأ أثناء حفظ التعديلات.");
+            // أعد جلب الموظفين
+            var resp2 = await client.GetAsync("User");
+            if (resp2.IsSuccessStatusCode)
+            {
+                var usersJson = await resp2.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                model.Employees = users.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Name
+                }).ToList();
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var response = await client.DeleteAsync($"Task/{id}");
+            // لا تعرض خطأ مفصل إن فشل، بل أعد التوجيه
+            return RedirectToAction("Index");
         }
     }
-    
 
+    // DTO داخلي للإرسال إلى API، يطابق TaskItem في API جزئيًا:
+    public class TaskItemForPost
+    {
+        public int Id { get; set; } // في Create قد يكون 0 أو مهمل
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Priority { get; set; }
+        public string System { get; set; }
+        public DateTime? DueDate { get; set; }
+        public int AssignedToUserId { get; set; }
+        public string Status { get; set; } = "Pending"; // في Edit يتم تغييره حسب الحاجة
+    }
 }

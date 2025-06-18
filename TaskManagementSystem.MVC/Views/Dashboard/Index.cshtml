@@ -1,4 +1,4 @@
-﻿@model TaskManagementSystem.MVC.Models.DashboardViewModel
+﻿@*@model TaskManagementSystem.MVC.Models.DashboardViewModel
 @{
     ViewData["Title"] = "لوحة التقارير";
 }
@@ -72,6 +72,70 @@
                         position: 'bottom'
                     }
                 }
+            }
+        });
+    </script>
+}*@
+
+@model TaskManagementSystem.MVC.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "لوحة التقارير";
+}
+<h2>لوحة التقارير</h2>
+
+<div class="mb-4">
+    <h4>عدد المهام حسب الحالة</h4>
+    <canvas id="statusChart" style="max-width:600px;"></canvas>
+</div>
+
+<div class="mb-4">
+    <h4>متوسط زمن التنفيذ (دقائق)</h4>
+    <p>@Model.AverageDuration.AverageMinutes.ToString("F1") دقيقة</p>
+</div>
+
+<div class="mb-4">
+    <h4>أداء الموظفين</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>الموظف</th>
+                <th>الإجمالي</th>
+                <th>المنجز في الوقت</th>
+                <th>المتأخرة</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var u in Model.UserPerformances)
+            {
+                <tr>
+                    <td>@u.UserName</td>
+                    <td>@u.Total</td>
+                    <td>@u.CompletedOnTime</td>
+                    <td>@u.OverdueCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusCounts.Select(s => s.Status)));
+        const dataVals = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusCounts.Select(s => s.Count)));
+
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'عدد المهام',
+                    data: dataVals
+                }]
+            },
+            options: {
+                responsive: true
             }
         });
     </script>

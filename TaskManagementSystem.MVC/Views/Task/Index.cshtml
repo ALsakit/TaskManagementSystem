@@ -1,9 +1,145 @@
 ﻿@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
 @{
     ViewData["Title"] = "قائمة المهام";
+    var role = Context.Session.GetString("UserRole");
+}
+<h2>قائمة المهام</h2>
+<a asp-action="Create" class="btn btn-success mb-3">+ مهمة جديدة</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>العنوان</th>
+            <th>الوصف</th>
+            <th>الأولوية</th>
+            <th>النظام</th>
+            <th>الحالة</th>
+            <th>الموظف المسؤول</th>
+            <th>إجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach(var task in Model)
+    {
+        <tr>
+            <td>@task.Title</td>
+            <td>@task.Description</td>
+            <td>@task.Priority</td>
+            <td>@task.System</td>
+            <td>@task.Status</td>
+            <td>@task.AssignedToName</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-primary">تعديل</a>
+                @if(role == "Manager" || role == "Admin")
+                {
+                    <form asp-action="Delete" asp-route-id="@task.Id" method="post" style="display:inline-block">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل متأكد من الحذف؟');">حذف</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@*
+
+@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
+@{
+    ViewData["Title"] = "قائمة المهام";
   //  var role = Context.Session.GetString("UserRole");
 }
+*@
+ <div class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700">لوحة التحكم الرئيسية</h3>
+                <div class="bg-white rounded-lg shadow-lg p-8 border">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-semibold">مرحباً، أحمد محمد</h4>
+                        <div class="flex space-x-4 space-x-reverse">
 
+
+
+                            @*<button asp-action="Create" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-plus ml-2"></i>
+                                مهمة جديدة
+                            </button>*@
+                             <a asp-action="Create" class="btn-primary bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">+ مهمة جديدة</a>
+                            <div class="relative">
+                                <i class="fas fa-bell text-xl text-gray-600 relative">
+                                    <span
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                                </i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-2xl font-bold text-blue-800">24</div>
+                                    <div class="text-blue-600">مهام جديدة</div>
+                                </div>
+                                <i class="fas fa-plus-circle text-2xl text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-2xl font-bold text-yellow-800">18</div>
+                                    <div class="text-yellow-600">قيد التنفيذ</div>
+                                </div>
+                                <i class="fas fa-sync-alt text-2xl text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-2xl font-bold text-green-800">32</div>
+                                    <div class="text-green-600">مكتملة</div>
+                                </div>
+                                <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-2xl font-bold text-red-800">5</div>
+                                    <div class="text-red-600">متأخرة</div>
+                                </div>
+                                <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-6">
+                        <h5 class="text-lg font-semibold mb-4">المهام الأخيرة</h5>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full ml-3"></div>
+                                    <div>
+                                        <div class="font-semibold">تطوير واجهة تسجيل الدخول</div>
+                                        <div class="text-sm text-gray-600">تم التعيين إلى: سارة أحمد</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-500">منذ ساعتين</div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full ml-3"></div>
+                                    <div>
+                                        <div class="font-semibold">إصلاح مشكلة في قاعدة البيانات</div>
+                                        <div class="text-sm text-gray-600">تم التعيين إلى: محمد علي</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-500">أمس</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
 <div class="card">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold">قائمة المهام</h2>
@@ -59,3 +195,5 @@
         </table>
     </div>
 </div>
+
+

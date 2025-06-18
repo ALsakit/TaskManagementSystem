@@ -58,7 +58,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - نظام إدارة المهام</title>
-
+   @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />*@
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
@@ -97,6 +98,8 @@
             <div>
                  <a asp-controller="Task" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">المهام</a>
                     <a asp-controller="Dashboard" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">التقارير</a>
+                    <a asp-controller="Employee" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">الموظفون</a>
+
                     <a asp-controller="Auth" asp-action="Logout" class="mx-2 text-gray-700 hover:text-red-500">خروج</a>
                @* @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
                 {
