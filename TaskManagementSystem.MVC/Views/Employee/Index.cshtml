@@ -38,8 +38,12 @@
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             @*<a asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>*@
                            
-                               <a  asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
-                            <a asp-action="Delete" asp-route-id="@emp.Id" class="text-red-600 hover:text-red-800 mx-2">حذف</a>
+
+                            <a  asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
+                            @*<a asp-action="Delete" asp-route-id="@emp.Id" class="text-red-600 hover:text-red-800 mx-2">حذف</a>*@
+                            <a href="#" class="text-red-600 hover:text-red-800 mx-2" onclick="confirmDelete(@emp.Id, '@emp.Name')">حذف</a>
+
+
                         </td>
                     </tr>
                 }
@@ -47,3 +51,41 @@
         </table>
     </div>
 </div>
+<form method="post">
+    @Html.AntiForgeryToken()
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDelete(userId, userName) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: `سيتم حذف الموظف (${userName}) نهائيًا!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/Employee/DeleteConfirmed/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getAntiForgeryToken()
+                    }
+                })
+                .then(res => {
+                    if (res.ok) {
+                        Swal.fire('تم الحذف!', 'تم حذف الموظف بنجاح.', 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('خطأ!', 'فشل حذف الموظف.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function getAntiForgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+</script>

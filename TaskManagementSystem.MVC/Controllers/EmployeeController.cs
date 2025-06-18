@@ -222,7 +222,41 @@ namespace TaskManagementSystem.MVC.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var response = await client.GetAsync($"User/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["ErrorMessage"] = "لم يتم العثور على الموظف.";
+                return RedirectToAction("Index");
+            }
 
+            var json = await response.Content.ReadAsStringAsync();
+            var emp = JsonConvert.DeserializeObject<EmployeeViewModel>(json);
+            return View(emp); // عرض صفحة التأكيد للحذف
+        }
+
+        //[HttpPost, ActionName("Delete")]
+        //[ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Employee/DeleteConfirmed/{id}")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var response = await client.DeleteAsync($"User/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["ErrorMessage"] = "فشل حذف المستخدم.";
+                return RedirectToAction("Index");
+            }
+
+            TempData["SuccessMessage"] = "تم حذف الموظف.";
+            return RedirectToAction("Index");
+        }
 
 
     }

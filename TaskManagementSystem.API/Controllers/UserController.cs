@@ -31,7 +31,7 @@ namespace TaskManagementSystem.API.Controllers
             return Ok(users);
         }
 
-        
+
         // POST: api/User
         [HttpPost]
         // [Authorize(Roles = "Admin")] // فقط Admin يمكنه إضافة موظفين
@@ -62,6 +62,28 @@ namespace TaskManagementSystem.API.Controllers
                 Role = user.Role
             });
         }
+
+        // GET: api/User/5
+        [HttpGet("{id}")]
+        [AllowAnonymous] // أو احذفها إذا أردت حماية الوصول
+        public async Task<ActionResult<UserDto>> GetUserById(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
+
+            var dto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+
+            return Ok(dto);
+        }
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] CreateUserModel model)
         {
@@ -72,7 +94,24 @@ namespace TaskManagementSystem.API.Controllers
             user.Email = model.Email;
             user.Role = model.Role;
 
+            // فقط حدث كلمة المرور لو تم إرسالها
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                user.PasswordHash = model.Password; // أو استخدم تجزئة
+            }
+
             _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -91,7 +130,7 @@ namespace TaskManagementSystem.API.Controllers
         {
             public string Name { get; set; }
             public string Email { get; set; }
-            public string Password { get; set; }
+            public string? Password { get; set; }
             public string Role { get; set; }
         }
 
