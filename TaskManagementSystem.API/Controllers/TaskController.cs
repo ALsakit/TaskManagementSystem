@@ -13,47 +13,125 @@ namespace TaskManagementSystem.API.Controllers
     public class TaskController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public TaskController(AppDbContext context)
+        private readonly ILogger<TaskController> _logger;
+        public TaskController(AppDbContext context, ILogger<TaskController> logger)
         {
             _context = context;
+            _logger = logger;
+        }
+
+        public class TaskDto
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Description { get; set; }
+            public string Priority { get; set; }
+            public string System { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime? DueDate { get; set; }
+            public string Status { get; set; }
+            public int AssignedToUserId { get; set; }
+            public string AssignedToName { get; set; }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks()
+        {
+            var data = await _context.TaskItems
+                .Include(t => t.AssignedTo)
+                .Select(t => new TaskDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Priority = t.Priority,
+                    System = t.System,
+                    CreatedAt = t.CreatedAt,
+                    DueDate = t.DueDate,
+                    Status = t.Status,
+                    AssignedToUserId = t.AssignedToUserId,
+                    AssignedToName = t.AssignedTo.Name
+                })
+                .ToListAsync();
+            return Ok(data);
+        }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TaskDto>> GetTaskItem(int id)
+        {
+            var t = await _context.TaskItems.Include(x => x.AssignedTo)
+                .FirstOrDefaultAsync(ti => ti.Id == id);
+            if (t == null) return NotFound();
+            return new TaskDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Description = t.Description,
+                Priority = t.Priority,
+                System = t.System,
+                CreatedAt = t.CreatedAt,
+                DueDate = t.DueDate,
+                Status = t.Status,
+                AssignedToUserId = t.AssignedToUserId,
+                AssignedToName = t.AssignedTo.Name
+            };
         }
 
         // GET: api/Task
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
-        {
-            return await _context.TaskItems
-                .Include(t => t.AssignedTo)
-                .Include(t => t.Comments)
-                .ToListAsync();
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
+        //{
+        //    return await _context.TaskItems
+        //        .Include(t => t.AssignedTo)
+        //        .Include(t => t.Comments)
+        //        .ToListAsync();
+        //}
 
-        // GET: api/Task/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TaskItem>> GetTaskItem(int id)
-        {
-            var taskItem = await _context.TaskItems
-                .Include(t => t.AssignedTo)
-                .Include(t => t.Comments)
-                .FirstOrDefaultAsync(t => t.Id == id);
+        //// GET: api/Task/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<TaskItem>> GetTaskItem(int id)
+        //{
+        //    var taskItem = await _context.TaskItems
+        //        .Include(t => t.AssignedTo)
+        //        .Include(t => t.Comments)
+        //        .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (taskItem == null)
-                return NotFound();
+        //    if (taskItem == null)
+        //        return NotFound();
 
-            return taskItem;
-        }
+        //    return taskItem;
+        //}
 
-        // POST: api/Task
+
         [HttpPost]
         public async Task<ActionResult<TaskItem>> CreateTask([FromBody] TaskItem taskItem)
         {
+            _logger.LogInformation("CreateTask called with: {@taskItem}", taskItem);
             taskItem.CreatedAt = DateTime.UtcNow;
             taskItem.Status = "Pending";
             _context.TaskItems.Add(taskItem);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Task saved with Id {Id}", taskItem.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Task");
+                return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
+            }
             return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
         }
+
+        // POST: api/Task
+        //[HttpPost]
+        //public async Task<ActionResult<TaskItem>> CreateTask([FromBody] TaskItem taskItem)
+        //{
+        //    taskItem.CreatedAt = DateTime.UtcNow;
+        //    taskItem.Status = "Pending";
+        //    _context.TaskItems.Add(taskItem);
+        //    await _context.SaveChangesAsync();
+        //    return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
+        //}
 
         // PUT: api/Task/5
         [HttpPut("{id}")]
@@ -147,3 +225,6 @@ namespace TaskManagementSystem.API.Controllers
 
     }
 }
+
+
+

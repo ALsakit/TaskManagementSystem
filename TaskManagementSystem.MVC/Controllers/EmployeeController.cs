@@ -7,6 +7,7 @@ using TaskManagementSystem.MVC.Helpers;
 using TaskManagementSystem.MVC.Models;
 namespace TaskManagementSystem.MVC.Controllers
 {
+
     public class EmployeeController : Controller
     {
         private readonly ApiClientFactory _apiClientFactory;
@@ -112,6 +113,115 @@ namespace TaskManagementSystem.MVC.Controllers
             TempData["SuccessMessage"] = "تم إضافة الموظف.";
             return RedirectToAction("Index");
         }
+
+        //[HttpGet]
+        //public async Task<IActionResult> Edit(int id)
+        //{
+        //    var client = _apiClientFactory.CreateClient();
+        //    var resp = await client.GetAsync($"User/{id}");
+
+        //    if (!resp.IsSuccessStatusCode)
+        //    {
+        //        ViewData["Error"] = "فشل في جلب بيانات الموظف.";
+        //        return RedirectToAction("Index");
+        //    }
+
+        //    var json = await resp.Content.ReadAsStringAsync();
+        //    var emp = JsonConvert.DeserializeObject<EmployeeViewModel>(json);
+
+        //    var model = new EmployeeEditViewModel
+        //    {
+        //        Id = emp.Id,
+        //        Name = emp.Name,
+        //        Email = emp.Email,
+        //        Role = emp.Role
+        //    };
+
+        //    return View(model);
+        //}
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var response = await client.GetAsync($"User/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "فشل جلب بيانات الموظف.";
+                return RedirectToAction("Index");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var emp = JsonConvert.DeserializeObject<EmployeeViewModel>(json);
+
+            var vm = new EmployeeEditViewModel
+            {
+                Id = emp.Id, // 🔴 تأكد من وجود هذا
+                Name = emp.Name,
+                Email = emp.Email,
+                Role = emp.Role
+            };
+
+            return View(vm);
+        }
+
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(EmployeeEditViewModel model)
+        //{
+        //    if (!ModelState.IsValid) return View(model);
+
+        //    var client = _apiClientFactory.CreateClient();
+        //    var toSend = new
+        //    {
+        //        Id = model.Id,
+        //        Name = model.Name,
+        //        Email = model.Email,
+        //        Role = model.Role
+        //    };
+        //    var json = JsonConvert.SerializeObject(toSend);
+        //    var resp = await client.PutAsync($"User/{model.Id}", new StringContent(json, Encoding.UTF8, "application/json"));
+
+        //    if (!resp.IsSuccessStatusCode)
+        //    {
+        //        var err = await resp.Content.ReadAsStringAsync();
+        //        ModelState.AddModelError("", $"خطأ في التحديث: {err}");
+        //        return View(model);
+        //    }
+
+        //    TempData["SuccessMessage"] = "تم تعديل الموظف بنجاح.";
+        //    return RedirectToAction("Index");
+        //}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, EmployeeEditViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var client = _apiClientFactory.CreateClient();
+            var toSend = new
+            {
+                Name = model.Name,
+                Email = model.Email,
+                Role = model.Role
+            };
+
+            var json = JsonConvert.SerializeObject(toSend);
+            var resp = await client.PutAsync($"User/{id}", new StringContent(json, Encoding.UTF8, "application/json"));
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var err = await resp.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"خطأ في التعديل: {err}");
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "تم تعديل الموظف بنجاح.";
+            return RedirectToAction("Index");
+        }
+
 
 
 

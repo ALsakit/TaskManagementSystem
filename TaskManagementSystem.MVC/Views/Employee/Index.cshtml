@@ -1,36 +1,46 @@
-﻿@model IEnumerable<TaskManagementSystem.MVC.Models.EmployeeViewModel>
+﻿
+@model IEnumerable<TaskManagementSystem.MVC.Models.EmployeeViewModel>
 @{
     ViewData["Title"] = "قائمة الموظفين";
 }
-
-<div class="card">
-    <h2 class="text-2xl font-semibold mb-4">قائمة الموظفين</h2>
-    <a asp-action="Create" class="btn btn-success mb-3">+ إضافة موظف جديد</a>
+<div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-semibold text-gray-700">@ViewData["Title"]</h3>
+        <a asp-action="Create" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">+ إضافة موظف جديد</a>
+    </div>
 
     @if (ViewData["Error"] != null)
     {
-        <div class="bg-red-100 border border-red-400 text-red-700 p-3 mb-4 rounded">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             @ViewData["Error"]
         </div>
     }
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white">
-            <thead class="bg-gray-100">
+
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-right">#</th>
-                    <th class="px-4 py-2 text-right">الاسم</th>
-                    <th class="px-4 py-2 text-right">البريد الإلكتروني</th>
-                    <th class="px-4 py-2 text-right">الدور</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">البريد الإلكتروني</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الدور</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">إجراءات</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach(var emp in Model)
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach (var emp in Model)
                 {
-                    <tr class="border-b">
-                        <td class="px-4 py-2 text-right">@emp.Id</td>
-                        <td class="px-4 py-2 text-right">@emp.Name</td>
-                        <td class="px-4 py-2 text-right">@emp.Email</td>
-                        <td class="px-4 py-2 text-right">@emp.Role</td>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Id</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Name</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Email</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Role</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            @*<a asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>*@
+                           
+                               <a  asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
+                            <a asp-action="Delete" asp-route-id="@emp.Id" class="text-red-600 hover:text-red-800 mx-2">حذف</a>
+                        </td>
                     </tr>
                 }
             </tbody>

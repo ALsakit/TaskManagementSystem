@@ -62,6 +62,22 @@ namespace TaskManagementSystem.API.Controllers
                 Role = user.Role
             });
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] CreateUserModel model)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound("الموظف غير موجود.");
+
+            user.Name = model.Name;
+            user.Email = model.Email;
+            user.Role = model.Role;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
         // DTO لعدم إرسال PasswordHash
         public class UserDto

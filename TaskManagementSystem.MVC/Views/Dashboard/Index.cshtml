@@ -1,4 +1,4 @@
-﻿@*@model TaskManagementSystem.MVC.Models.DashboardViewModel
+﻿@model TaskManagementSystem.MVC.Models.DashboardViewModel
 @{
     ViewData["Title"] = "لوحة التقارير";
 }
@@ -75,13 +75,13 @@
             }
         });
     </script>
-}*@
+}
 
-@model TaskManagementSystem.MVC.Models.DashboardViewModel
+@*@model TaskManagementSystem.MVC.Models.DashboardViewModel
 @{
     ViewData["Title"] = "لوحة التقارير";
-}
-<h2>لوحة التقارير</h2>
+}*@
+@*<h2>لوحة التقارير</h2>
 
 <div class="mb-4">
     <h4>عدد المهام حسب الحالة</h4>
@@ -116,9 +116,9 @@
             }
         </tbody>
     </table>
-</div>
+</div>*@
 
-@section Scripts {
+@*@section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusCounts.Select(s => s.Status)));
@@ -140,3 +140,4 @@
         });
     </script>
 }
+*@

@@ -103,10 +103,16 @@ namespace TaskManagementSystem.MVC.Controllers
     public class TaskController : Controller
     {
         private readonly ApiClientFactory _apiClientFactory;
+        private readonly ILogger<TaskController> _logger;
 
-        public TaskController(ApiClientFactory apiClientFactory)
+        //public TaskController(ApiClientFactory apiClientFactory)
+        //{
+        //    _apiClientFactory = apiClientFactory;
+        //}
+        public TaskController(ApiClientFactory apiClientFactory, ILogger<TaskController> logger)
         {
             _apiClientFactory = apiClientFactory;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -125,7 +131,62 @@ namespace TaskManagementSystem.MVC.Controllers
         public async Task<IActionResult> Create()
         {
             var vm = new TaskViewModel();
-            // جلب الموظفين
+            // جلب قائمة الموظفين
+            await RefillEmployees(vm);
+            // إعداد خيارات الأولوية والحالة إن أردت
+            vm.PriorityOptions = new List<SelectListItem> {
+        new SelectListItem("Low","Low"),
+        new SelectListItem("Medium","Medium"),
+        new SelectListItem("High","High")
+    };
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(TaskViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                await RefillEmployees(model);
+                model.PriorityOptions = new List<SelectListItem> {
+            new SelectListItem("Low","Low"),
+            new SelectListItem("Medium","Medium"),
+            new SelectListItem("High","High")
+        };
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+            var toSend = new
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId
+            };
+            var json = JsonConvert.SerializeObject(toSend);
+            _logger?.LogInformation("Sending Task JSON: {json}", json);
+            var response = await client.PostAsync("Task", new StringContent(json, Encoding.UTF8, "application/json"));
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"خطأ من API: {response.StatusCode}. {err}");
+                await RefillEmployees(model);
+                model.PriorityOptions = new List<SelectListItem> {
+            new SelectListItem("Low","Low"),
+            new SelectListItem("Medium","Medium"),
+            new SelectListItem("High","High")
+        };
+                return View(model);
+            }
+            return RedirectToAction("Index");
+        }
+
+        private async Task RefillEmployees(TaskViewModel vm)
+        {
             var client = _apiClientFactory.CreateClient();
             var resp = await client.GetAsync("User");
             if (resp.IsSuccessStatusCode)
@@ -142,62 +203,88 @@ namespace TaskManagementSystem.MVC.Controllers
             {
                 vm.Employees = new List<SelectListItem>();
             }
-            return View(vm);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(TaskViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                // أعد جلب الموظفين
-                var client2 = _apiClientFactory.CreateClient();
-                var resp2 = await client2.GetAsync("User");
-                if (resp2.IsSuccessStatusCode)
-                {
-                    var usersJson = await resp2.Content.ReadAsStringAsync();
-                    var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
-                    model.Employees = users.Select(u => new SelectListItem
-                    {
-                        Value = u.Id.ToString(),
-                        Text = u.Name
-                    }).ToList();
-                }
-                return View(model);
-            }
 
-            var client = _apiClientFactory.CreateClient();
-            // جهّز بيانات الإرسال: كائن TaskItem JSON
-            var toSend = new TaskItemForPost
-            {
-                Title = model.Title,
-                Description = model.Description,
-                Priority = model.Priority,
-                System = model.System,
-                DueDate = model.DueDate,
-                AssignedToUserId = model.AssignedToUserId
-            };
-            var json = JsonConvert.SerializeObject(toSend);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("Task", content);
-            if (response.IsSuccessStatusCode)
-                return RedirectToAction("Index");
 
-            ModelState.AddModelError("", "حدث خطأ أثناء إنشاء المهمة.");
-            // أعد جلب الموظفين
-            var resp3 = await client.GetAsync("User");
-            if (resp3.IsSuccessStatusCode)
-            {
-                var usersJson = await resp3.Content.ReadAsStringAsync();
-                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
-                model.Employees = users.Select(u => new SelectListItem
-                {
-                    Value = u.Id.ToString(),
-                    Text = u.Name
-                }).ToList();
-            }
-            return View(model);
-        }
+
+        //[HttpGet]
+        //public async Task<IActionResult> Create()
+        //{
+        //    var vm = new TaskViewModel();
+        //    // جلب الموظفين
+        //    var client = _apiClientFactory.CreateClient();
+        //    var resp = await client.GetAsync("User");
+        //    if (resp.IsSuccessStatusCode)
+        //    {
+        //        var usersJson = await resp.Content.ReadAsStringAsync();
+        //        var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+        //        vm.Employees = users.Select(u => new SelectListItem
+        //        {
+        //            Value = u.Id.ToString(),
+        //            Text = u.Name
+        //        }).ToList();
+        //    }
+        //    else
+        //    {
+        //        vm.Employees = new List<SelectListItem>();
+        //    }
+        //    return View(vm);
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> Create(TaskViewModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        // أعد جلب الموظفين
+        //        var client2 = _apiClientFactory.CreateClient();
+        //        var resp2 = await client2.GetAsync("User");
+        //        if (resp2.IsSuccessStatusCode)
+        //        {
+        //            var usersJson = await resp2.Content.ReadAsStringAsync();
+        //            var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+        //            model.Employees = users.Select(u => new SelectListItem
+        //            {
+        //                Value = u.Id.ToString(),
+        //                Text = u.Name
+        //            }).ToList();
+        //        }
+        //        return View(model);
+        //    }
+
+        //    var client = _apiClientFactory.CreateClient();
+        //    // جهّز بيانات الإرسال: كائن TaskItem JSON
+        //    var toSend = new TaskItemForPost
+        //    {
+        //        Title = model.Title,
+        //        Description = model.Description,
+        //        Priority = model.Priority,
+        //        System = model.System,
+        //        DueDate = model.DueDate,
+        //        AssignedToUserId = model.AssignedToUserId
+        //    };
+        //    var json = JsonConvert.SerializeObject(toSend);
+        //    var content = new StringContent(json, Encoding.UTF8, "application/json");
+        //    var response = await client.PostAsync("Task", content);
+        //    if (response.IsSuccessStatusCode)
+        //        return RedirectToAction("Index");
+
+        //    ModelState.AddModelError("", "حدث خطأ أثناء إنشاء المهمة.");
+        //    // أعد جلب الموظفين
+        //    var resp3 = await client.GetAsync("User");
+        //    if (resp3.IsSuccessStatusCode)
+        //    {
+        //        var usersJson = await resp3.Content.ReadAsStringAsync();
+        //        var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+        //        model.Employees = users.Select(u => new SelectListItem
+        //        {
+        //            Value = u.Id.ToString(),
+        //            Text = u.Name
+        //        }).ToList();
+        //    }
+        //    return View(model);
+        //}
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
