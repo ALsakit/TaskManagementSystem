@@ -34,6 +34,7 @@ namespace TaskManagementSystem.API.Controllers
             public string AssignedToName { get; set; }
         }
 
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks()
         {
@@ -100,14 +101,35 @@ namespace TaskManagementSystem.API.Controllers
 
         //    return taskItem;
         //}
-
-
-        [HttpPost]
-        public async Task<ActionResult<TaskItem>> CreateTask([FromBody] TaskItem taskItem)
+        // 1. أضف DTO جديد لقبول بيانات إنشاء المهمة فقط
+        public class CreateTaskModel
         {
-            _logger.LogInformation("CreateTask called with: {@taskItem}", taskItem);
-            taskItem.CreatedAt = DateTime.UtcNow;
-            taskItem.Status = "Pending";
+            public string Title { get; set; }
+            public string Description { get; set; }
+            public string Priority { get; set; }
+            public string System { get; set; }
+            public DateTime? DueDate { get; set; }
+            public int AssignedToUserId { get; set; }
+        }
+
+        // 2. عدّل الميثود POST في TaskController لاستخدام CreateTaskModel بدلاً من TaskItem
+        [HttpPost]
+        public async Task<ActionResult<TaskItem>> CreateTask([FromBody] CreateTaskModel model)
+        {
+            _logger.LogInformation("CreateTask called with: {@model}", model);
+
+            var taskItem = new TaskItem
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Pending"
+            };
+
             _context.TaskItems.Add(taskItem);
             try
             {
@@ -119,8 +141,30 @@ namespace TaskManagementSystem.API.Controllers
                 _logger.LogError(ex, "Error saving Task");
                 return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
             }
+
             return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
         }
+
+
+        //[HttpPost]
+        //public async Task<ActionResult<TaskItem>> CreateTask([FromBody] TaskItem taskItem)
+        //{
+        //    _logger.LogInformation("CreateTask called with: {@taskItem}", taskItem);
+        //    taskItem.CreatedAt = DateTime.UtcNow;
+        //    taskItem.Status = "Pending";
+        //    _context.TaskItems.Add(taskItem);
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //        _logger.LogInformation("Task saved with Id {Id}", taskItem.Id);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error saving Task");
+        //        return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
+        //    }
+        //    return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
+        //}
 
         // POST: api/Task
         //[HttpPost]
@@ -132,6 +176,18 @@ namespace TaskManagementSystem.API.Controllers
         //    await _context.SaveChangesAsync();
         //    return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
         //}
+        public class UpdateTaskModel
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Description { get; set; }
+            public string Priority { get; set; }
+            public string System { get; set; }
+            public DateTime? DueDate { get; set; }
+            public string Status { get; set; }
+            public int AssignedToUserId { get; set; }
+        }
+
 
         // PUT: api/Task/5
         [HttpPut("{id}")]
