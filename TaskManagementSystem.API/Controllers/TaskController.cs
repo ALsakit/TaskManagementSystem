@@ -313,8 +313,36 @@ namespace TaskManagementSystem.API.Controllers
                 .ToListAsync();
             return Ok(data);
         }
+        // GET: api/Task/stats/recent-tasks
+        [HttpGet("stats/recent-tasks")]
+        public async Task<ActionResult<IEnumerable<RecentTaskDto>>> GetRecentTasks()
+        {
+            var tasks = await _context.TaskItems
+                .Include(t => t.AssignedTo)
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .Select(t => new RecentTaskDto
+                {
+                    Title = t.Title,
+                    AssignedToName = t.AssignedTo.Name,
+                    CreatedAt = t.CreatedAt,
+                    Status = t.Status
+                })
+                .ToListAsync();
+
+            return Ok(tasks);
+        }
+
 
     }
+    public class RecentTaskDto
+    {
+        public string Title { get; set; }
+        public string AssignedToName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Status { get; set; }
+    }
+
 }
 
 

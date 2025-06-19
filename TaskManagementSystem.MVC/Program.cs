@@ -15,12 +15,17 @@ builder.Services.AddHttpContextAccessor();
 //builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<ApiClientFactory>();
-
-builder.Services.AddSession(options =>
+builder.Services.AddSession();
+//builder.Services.AddSession(options =>
+//{
+//    options.IdleTimeout = TimeSpan.FromMinutes(30);
+//    options.Cookie.HttpOnly = true;
+//    options.Cookie.IsEssential = true;
+//});
+builder.Services.AddHttpClient("AuthApiClient", client =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+    client.BaseAddress = new Uri("https://localhost:7172/api/");
+    // Add any other configuration
 });
 var app = builder.Build();
 

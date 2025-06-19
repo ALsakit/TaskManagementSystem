@@ -39,6 +39,7 @@ namespace TaskManagementSystem.MVC.Controllers
         //    var employees = JsonConvert.DeserializeObject<List<EmployeeViewModel>>(json);
         //    return View(employees);
         //}
+        [RequireLogin]
         public async Task<IActionResult> Index()
         {
             var client = _apiClientFactory.CreateClient();

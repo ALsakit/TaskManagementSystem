@@ -34,7 +34,7 @@ namespace TaskManagementSystem.API.Controllers
 
         // POST: api/User
         [HttpPost]
-        // [Authorize(Roles = "Admin")] // فقط Admin يمكنه إضافة موظفين
+        //[Authorize(Roles = "Admin")] // فقط Admin يمكنه إضافة موظفين
         [AllowAnonymous] // للسماح المؤقت أثناء التطوير
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserModel model)
         {

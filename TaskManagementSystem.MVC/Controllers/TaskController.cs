@@ -21,7 +21,7 @@ namespace TaskManagementSystem.MVC.Controllers
             _apiClientFactory = apiClientFactory;
             _logger = logger;
         }
-
+        [RequireLogin]
         public async Task<IActionResult> Index()
         {
             var client = _apiClientFactory.CreateClient();

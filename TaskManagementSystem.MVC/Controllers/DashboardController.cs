@@ -53,7 +53,7 @@ namespace TaskManagementSystem.MVC.Controllers
         {
             _apiClientFactory = apiClientFactory;
         }
-
+        [RequireLogin]
         public async Task<IActionResult> Index()
         {
             var client = _apiClientFactory.CreateClient();

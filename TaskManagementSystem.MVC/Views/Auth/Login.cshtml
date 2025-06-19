@@ -1,4 +1,4 @@
-﻿@model TaskManagementSystem.MVC.Models.LoginViewModel
+﻿@*@model TaskManagementSystem.MVC.Models.LoginViewModel
 @{
     ViewData["Title"] = "تسجيل الدخول";
 }
@@ -19,3 +19,204 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+*@
+
+@model TaskManagementSystem.MVC.Models.LoginViewModel
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>تسجيل الدخول</h2>
+        </div>
+        <div class="login-body">
+            <form asp-action="Login" method="post">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="validation-message"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">كلمة المرور</label>
+                    <input asp-for="Password" type="password" class="form-control" />
+                    <span asp-validation-for="Password" class="validation-message"></span>
+                </div>
+                <button type="submit" class="login-btn">دخول</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ملف styles.css لنموذج تسجيل الدخول */
+
+/* التنسيقات العامة */
+.login-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    direction: rtl;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* تنسيقات البطاقة */
+.login-card {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.login-header {
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    color: white;
+    padding: 25px;
+    text-align: center;
+}
+
+.login-header h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 24px;
+}
+
+.login-body {
+    padding: 30px;
+}
+
+/* تنسيقات حقول الإدخال */
+.form-group {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #34495e;
+    font-size: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+    background-color: #f9f9f9;
+    text-align: right;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    background-color: #fff;
+    outline: none;
+}
+
+/* تنسيقات التحقق من الصحة */
+.validation-message {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #e74c3c;
+    height: 18px;
+}
+
+/* تنسيقات زر الدخول */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+/* تأثيرات الحركة */
+keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* أيقونات الاختيارية (إذا أضفت Font Awesome) */
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 38px;
+    color: #95a5a6;
+}
+
+/* التصميم للوضع الداكن */
+media (prefers-color-scheme: dark) {
+    .login-container {
+        background-color: #1a1a1a;
+    }
+    
+    .login-card {
+        background-color: #2d2d2d;
+    }
+    
+    .login-header {
+        background: linear-gradient(135deg, #2c3e50, #1a2a3a);
+    }
+    
+    .form-label {
+        color: #ecf0f1;
+    }
+    
+    .form-control {
+        background-color: #3d3d3d;
+        color: #ecf0f1;
+        border-color: #4d4d4d;
+    }
+    
+    .validation-message {
+        color: #ff6b6b;
+    }
+}
+
+/* التصميم للجوال */
+media (max-width: 576px) {
+    .login-card {
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .login-body {
+        padding: 20px;
+    }
+    
+    .form-control {
+        padding: 12px 15px;
+    }
+    
+    .login-btn {
+        padding: 12px;
+    }
+}
+</style>
