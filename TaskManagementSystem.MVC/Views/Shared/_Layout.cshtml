@@ -73,7 +73,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
 
     <style>
-        body {
+        /*body {
             font-family: 'Cairo', sans-serif;
             background-color: #f5f5f5;
         }
@@ -84,15 +84,115 @@
             top: 1rem;
             left: 1rem;
             z-index: 1000;
+        }*/
+         * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-new { background-color: #dbeafe; color: #1e40af; }
+        .status-progress { background-color: #fef3c7; color: #92400e; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-overdue { background-color: #fee2e2; color: #991b1b; }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #1f2937 0%, #374151 100%);
+            min-height: 100vh;
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(-4px);
+        }
+        
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-right: 4px solid #3b82f6;
+        }
+        
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .login-form {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .task-card {
+            border-right: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-card.new { border-right-color: #3b82f6; }
+        .task-card.progress { border-right-color: #f59e0b; }
+        .task-card.completed { border-right-color: #10b981; }
+        .task-card.overdue { border-right-color: #ef4444; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
         }
     </style>
 
     @RenderSection("Styles", required: false)
 </head>
-<body class="min-h-screen flex flex-col">
+@*<body class="min-h-screen flex ">*@
+   <body class="bg-gray-100">
 
     <!-- شريط التنقل -->
-    @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
+   @* @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
     {
         <nav class="bg-white shadow">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -103,22 +203,61 @@
                     <a asp-controller="Dashboard" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">التقارير</a>
                     <a asp-controller="Employee" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">الموظفون</a>
                     <a asp-controller="Auth" asp-action="Logout" class="mx-2 text-gray-700 hover:text-red-500">خروج</a>
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
 
 
                 </div>
             </div>
         </nav>
+    }*@
+   <!-- الشريط الجانبي الثابت -->
+    @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
+    {
+        <div class="fixed top-0 right-0 w-64 h-screen bg-indigo-600 text-white p-4 z-10">
+            <!-- شعار -->
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center ml-3">
+                    <i class="fas fa-tasks text-indigo-600"></i>
+                </div>
+                <h1 class="text-xl font-bold">نظام إدارة المهام</h1>
+            </div>
+
+            <!-- القائمة -->
+            <nav class="space-y-2">
+                <a asp-controller="Home" asp-action="Index"
+                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-home ml-3"></i>لوحة التحكم
+                </a>
+                <a asp-controller="Task" asp-action="Index"
+                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-tasks ml-3"></i>المهام
+                </a>
+                <a asp-controller="Dashboard" asp-action="Index"
+                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-chart-bar ml-3"></i>التقارير
+                </a>
+                <a asp-controller="Employee" asp-action="Index"
+                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Employee" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-users ml-3"></i>الموظفون
+                </a>
+                <a asp-controller="Auth" asp-action="Logout"
+                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500">
+                    <i class="fas fa-sign-out-alt ml-3"></i>خروج
+                </a>
+            </nav>
+        </div>
     }
 
     <!-- محتوى الصفحة -->
-    <main class="flex-grow container mx-auto px-4 py-6">
-        @RenderBody()
-    </main>
+    <div class="min-h-screen overflow-y-auto @(HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null ? "mr-64" : "")">
+        <main class="container mx-auto px-4 py-6">
+            @RenderBody()
+        </main>
+    </div>
 
-    <!-- حاوية الإشعارات -->
+    <!-- إشعارات -->
     <div id="notificationContainer"></div>
 
-    <!-- إشعارات SignalR -->
     <script>
         (function () {
             const token = '@HttpContextAccessor.HttpContext.Session.GetString("JWToken")';

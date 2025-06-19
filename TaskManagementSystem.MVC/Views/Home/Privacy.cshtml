@@ -1,6 +1,967 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المهام - واجهات محسنة</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    @*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">*@
+    
+    <!-- Google Fonts - Cairo للعربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-new { background-color: #dbeafe; color: #1e40af; }
+        .status-progress { background-color: #fef3c7; color: #92400e; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-overdue { background-color: #fee2e2; color: #991b1b; }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #1f2937 0%, #374151 100%);
+            min-height: 100vh;
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(-4px);
+        }
+        
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-right: 4px solid #3b82f6;
+        }
+        
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .login-form {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .task-card {
+            border-right: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-card.new { border-right-color: #3b82f6; }
+        .task-card.progress { border-right-color: #f59e0b; }
+        .task-card.completed { border-right-color: #10b981; }
+        .task-card.overdue { border-right-color: #ef4444; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+       
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
 
-<p>Use this page to detail your site's privacy policy.</p>
+    <!-- صفحة تسجيل الدخول -->
+    <div id="loginPage" class="login-container flex items-center justify-center p-4">
+        <div class="animate-fade-in">
+            <!-- عنوان النظام -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                    <i class="fas fa-tasks text-3xl text-indigo-600"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-white mb-2">نظام إدارة المهام</h1>
+                <p class="text-indigo-100 text-lg">منصة شاملة لإدارة وتنظيم المهام والمشاريع</p>
+            </div>
+            
+            <!-- نموذج تسجيل الدخول -->
+            <div class="login-form w-full max-w-md p-8 rounded-xl card-shadow">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">تسجيل الدخول</h2>
+                    <p class="text-gray-600">أدخل بياناتك للوصول إلى النظام</p>
+                </div>
+                
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope ml-2"></i>
+                            البريد الإلكتروني
+                        </label>
+                        <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="أدخل البريد الإلكتروني" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock ml-2"></i>
+                            كلمة المرور
+                        </label>
+                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="أدخل كلمة المرور" required>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span class="mr-2 text-sm text-gray-600">تذكرني</span>
+                        </label>
+                        <a href="#" class="text-sm text-indigo-600 hover:text-indigo-500">نسيت كلمة المرور؟</a>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium">
+                        <i class="fas fa-sign-in-alt ml-2"></i>
+                        دخول
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600">ليس لديك حساب؟ <a href="#" class="text-indigo-600 hover:text-indigo-500 font-medium">أنشئ حسابًا جديدًا</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- النظام الرئيسي -->
+    <div id="mainSystem" class="hidden">
+        <div class="flex">
+            <!-- الشريط الجانبي -->
+            <div class="sidebar w-64 p-4">
+                <div class="flex items-center mb-8">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center ml-3">
+                        <i class="fas fa-tasks text-white"></i>
+                    </div>
+                    <h1 class="text-white text-xl font-bold">إدارة المهام</h1>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="#" class="sidebar-item active flex items-center p-3 text-white" data-page="dashboard">
+                        <i class="fas fa-home ml-3"></i>
+                        لوحة التحكم
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center p-3 text-white" data-page="tasks">
+                        <i class="fas fa-tasks ml-3"></i>
+                        المهام
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center p-3 text-white" data-page="reports">
+                        <i class="fas fa-chart-bar ml-3"></i>
+                        التقارير
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center p-3 text-white" data-page="employees">
+                        <i class="fas fa-users ml-3"></i>
+                        الموظفون
+                    </a>
+                    <a href="#" class="sidebar-item flex items-center p-3 text-white" data-page="settings">
+                        <i class="fas fa-cog ml-3"></i>
+                        الإعدادات
+                    </a>
+                </nav>
+                
+                <div class="absolute bottom-4 left-4 right-4">
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center ml-3">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium">أحمد محمد</p>
+                                <p class="text-gray-400 text-sm">مدير النظام</p>
+                            </div>
+                        </div>
+                        <button id="logoutBtn" class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-sign-out-alt ml-2"></i>
+                            تسجيل الخروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- المحتوى الرئيسي -->
+            <div class="flex-1 p-6">
+                <!-- رأس الصفحة -->
+                <header class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 id="pageTitle" class="text-2xl font-bold text-gray-800">لوحة التحكم الرئيسية</h2>
+                        <p class="text-gray-600">مرحباً بك، أحمد محمد</p>
+                    </div>
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <button class="relative p-2 text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                        </button>
+                        <button id="newTaskBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-plus ml-2"></i>
+                            مهمة جديدة
+                        </button>
+                    </div>
+                </header>
+
+                <!-- محتوى الصفحات -->
+                <main>
+                    <!-- لوحة التحكم -->
+                    <div id="dashboardContent" class="page-content">
+                        <!-- بطاقات الإحصائيات -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center ml-4">
+                                        <i class="fas fa-plus-circle text-blue-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-800">24</p>
+                                        <p class="text-gray-600">مهام جديدة</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center ml-4">
+                                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-800">18</p>
+                                        <p class="text-gray-600">قيد التنفيذ</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center ml-4">
+                                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-800">142</p>
+                                        <p class="text-gray-600">مكتملة</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center ml-4">
+                                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-800">7</p>
+                                        <p class="text-gray-600">متأخرة</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- المهام الأخيرة -->
+                        <div class="bg-white rounded-xl p-6 card-shadow mb-8">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">المهام الأخيرة</h3>
+                                <a href="#" class="text-indigo-600 hover:text-indigo-800">عرض الكل</a>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="task-card new bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h4 class="font-semibold text-gray-800 mb-2">تطوير واجهة تسجيل الدخول</h4>
+                                            <p class="text-gray-600 text-sm mb-3">إنشاء صفحة تسجيل دخول متجاوبة مع التحقق من البيانات</p>
+                                            <div class="flex items-center space-x-4 space-x-reverse">
+                                                <span class="status-badge status-new">جديدة</span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-user ml-1"></i>
+                                                    سارة أحمد
+                                                </span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-calendar ml-1"></i>
+                                                    15 يناير 2025
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2 space-x-reverse">
+                                            <button class="text-indigo-600 hover:text-indigo-800">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card progress bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h4 class="font-semibold text-gray-800 mb-2">إصلاح مشكلة في قاعدة البيانات</h4>
+                                            <p class="text-gray-600 text-sm mb-3">حل مشكلة الاتصال البطيء مع قاعدة البيانات</p>
+                                            <div class="flex items-center space-x-4 space-x-reverse">
+                                                <span class="status-badge status-progress">قيد التنفيذ</span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-user ml-1"></i>
+                                                    محمد علي
+                                                </span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-calendar ml-1"></i>
+                                                    14 يناير 2025
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2 space-x-reverse">
+                                            <button class="text-indigo-600 hover:text-indigo-800">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card completed bg-gray-50 p-4 rounded-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h4 class="font-semibold text-gray-800 mb-2">تحديث وثائق النظام</h4>
+                                            <p class="text-gray-600 text-sm mb-3">تحديث دليل المستخدم والوثائق الفنية</p>
+                                            <div class="flex items-center space-x-4 space-x-reverse">
+                                                <span class="status-badge status-completed">مكتملة</span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-user ml-1"></i>
+                                                    فاطمة خالد
+                                                </span>
+                                                <span class="text-sm text-gray-500">
+                                                    <i class="fas fa-calendar ml-1"></i>
+                                                    13 يناير 2025
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2 space-x-reverse">
+                                            <button class="text-indigo-600 hover:text-indigo-800">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صفحة المهام -->
+                    <div id="tasksContent" class="page-content hidden">
+                        <div class="bg-white rounded-xl p-6 card-shadow">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">جميع المهام</h3>
+                                <div class="flex space-x-4 space-x-reverse">
+                                    <select class="border border-gray-300 rounded-lg px-4 py-2">
+                                        <option>جميع الحالات</option>
+                                        <option>جديدة</option>
+                                        <option>قيد التنفيذ</option>
+                                        <option>مكتملة</option>
+                                        <option>متأخرة</option>
+                                    </select>
+                                    <input type="search" placeholder="البحث في المهام..." class="border border-gray-300 rounded-lg px-4 py-2">
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">العنوان</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المعين إليه</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاريخ الاستحقاق</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="font-medium text-gray-900">تطوير واجهة تسجيل الدخول</div>
+                                                <div class="text-sm text-gray-500">إنشاء صفحة تسجيل دخول متجاوبة</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">سارة أحمد</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="status-badge status-new">جديدة</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">20 يناير 2025</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="text-indigo-600 hover:text-indigo-900 ml-3">تحرير</button>
+                                                <button class="text-red-600 hover:text-red-900">حذف</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="font-medium text-gray-900">إصلاح مشكلة قاعدة البيانات</div>
+                                                <div class="text-sm text-gray-500">حل مشكلة الاتصال البطيء</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">محمد علي</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="status-badge status-progress">قيد التنفيذ</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">18 يناير 2025</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="text-indigo-600 hover:text-indigo-900 ml-3">تحرير</button>
+                                                <button class="text-red-600 hover:text-red-900">حذف</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="font-medium text-gray-900">تحديث الوثائق</div>
+                                                <div class="text-sm text-gray-500">تحديث دليل المستخدم</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">فاطمة خالد</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="status-badge status-completed">مكتملة</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15 يناير 2025</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="text-indigo-600 hover:text-indigo-900 ml-3">تحرير</button>
+                                                <button class="text-red-600 hover:text-red-900">حذف</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صفحة التقارير -->
+                    <div id="reportsContent" class="page-content hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <!-- مخطط توزيع المهام -->
+                            <div class="bg-white rounded-xl p-6 card-shadow">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">توزيع المهام حسب الحالة</h3>
+                                <div class="chart-container">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- مخطط الأداء الشهري -->
+                            <div class="bg-white rounded-xl p-6 card-shadow">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">الأداء الشهري</h3>
+                                <div class="chart-container">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- جدول أداء الموظفين -->
+                        <div class="bg-white rounded-xl p-6 card-shadow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">أداء الموظفين</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الموظف</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجمالي</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المنجز في الوقت</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المتأخرة</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">معدل الإنجاز</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center ml-3">
+                                                        <i class="fas fa-user text-gray-600"></i>
+                                                    </div>
+                                                    <div class="font-medium text-gray-900">سارة أحمد</div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">45</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">38</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-16 bg-gray-200 rounded-full h-2 ml-2">
+                                                        <div class="bg-green-500 h-2 rounded-full" style="width: 84%"></div>
+                                                    </div>
+                                                    <span class="text-sm text-gray-900">84%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center ml-3">
+                                                        <i class="fas fa-user text-gray-600"></i>
+                                                    </div>
+                                                    <div class="font-medium text-gray-900">محمد علي</div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">52</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">47</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">5</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-16 bg-gray-200 rounded-full h-2 ml-2">
+                                                        <div class="bg-green-500 h-2 rounded-full" style="width: 90%"></div>
+                                                    </div>
+                                                    <span class="text-sm text-gray-900">90%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center ml-3">
+                                                        <i class="fas fa-user text-gray-600"></i>
+                                                    </div>
+                                                    <div class="font-medium text-gray-900">فاطمة خالد</div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">38</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">35</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">3</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-16 bg-gray-200 rounded-full h-2 ml-2">
+                                                        <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
+                                                    </div>
+                                                    <span class="text-sm text-gray-900">92%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صفحة الموظفين -->
+                    <div id="employeesContent" class="page-content hidden">
+                        <div class="bg-white rounded-xl p-6 card-shadow">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">قائمة الموظفين</h3>
+                                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-plus ml-2"></i>
+                                    إضافة موظف
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="border border-gray-200 rounded-lg p-6 hover-scale">
+                                    <div class="text-center">
+                                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fas fa-user text-indigo-600 text-2xl"></i>
+                                        </div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">سارة أحمد</h4>
+                                        <p class="text-gray-600 text-sm mb-4">مطورة واجهات أمامية</p>
+                                        <div class="flex justify-center space-x-2 space-x-reverse">
+                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">نشطة</span>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-600">المهام المكتملة:</span>
+                                                <span class="font-medium">38</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-6 hover-scale">
+                                    <div class="text-center">
+                                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fas fa-user text-indigo-600 text-2xl"></i>
+                                        </div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">محمد علي</h4>
+                                        <p class="text-gray-600 text-sm mb-4">مطور خلفي</p>
+                                        <div class="flex justify-center space-x-2 space-x-reverse">
+                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">نشط</span>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-600">المهام المكتملة:</span>
+                                                <span class="font-medium">47</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-6 hover-scale">
+                                    <div class="text-center">
+                                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fas fa-user text-indigo-600 text-2xl"></i>
+                                        </div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">فاطمة خالد</h4>
+                                        <p class="text-gray-600 text-sm mb-4">محررة محتوى</p>
+                                        <div class="flex justify-center space-x-2 space-x-reverse">
+                                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">في إجازة</span>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-600">المهام المكتملة:</span>
+                                                <span class="font-medium">35</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صفحة الإعدادات -->
+                    <div id="settingsContent" class="page-content hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-xl p-6 card-shadow">
+                                <h3 class="text-xl font-bold text-gray-800 mb-6">الإعدادات العامة</h3>
+                                <form class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">اسم النظام</label>
+                                        <input type="text" value="نظام إدارة المهام" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">البريد الإلكتروني للإشعارات</label>
+                                        <input type="email" value="admin@tasks.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">المنطقة الزمنية</label>
+                                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                            <option>GMT+3 (الرياض)</option>
+                                            <option>GMT+2 (القاهرة)</option>
+                                            <option>GMT+4 (دبي)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors">
+                                        حفظ التغييرات
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl p-6 card-shadow">
+                                <h3 class="text-xl font-bold text-gray-800 mb-6">إعدادات الإشعارات</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-700">إشعارات المهام الجديدة</span>
+                                        <input type="checkbox" checked class="rounded">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-700">إشعارات المهام المتأخرة</span>
+                                        <input type="checkbox" checked class="rounded">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-700">إشعارات تحديث الحالة</span>
+                                        <input type="checkbox" class="rounded">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-700">التقارير الأسبوعية</span>
+                                        <input type="checkbox" checked class="rounded">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج إضافة مهمة جديدة -->
+    <div id="newTaskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">إضافة مهمة جديدة</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">عنوان المهمة</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">الوصف</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" rows="3"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">المعين إليه</label>
+                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option>اختر موظف</option>
+                        <option>سارة أحمد</option>
+                        <option>محمد علي</option>
+                        <option>فاطمة خالد</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الاستحقاق</label>
+                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                
+                <div class="flex space-x-4 space-x-reverse pt-4">
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        إضافة المهمة
+                    </button>
+                    <button type="button" id="cancelModal" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // إدارة تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // محاكاة عملية تسجيل الدخول
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (email && password) {
+                // إخفاء صفحة تسجيل الدخول وإظهار النظام
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainSystem').classList.remove('hidden');
+                
+                // إظهار إشعار نجح تسجيل الدخول
+                showNotification('تم تسجيل الدخول بنجاح!', 'success');
+            }
+        });
+
+        // إدارة تسجيل الخروج
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            document.getElementById('mainSystem').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            showNotification('تم تسجيل الخروج بنجاح!', 'info');
+        });
+
+        // إدارة التنقل بين الصفحات
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // إزالة الفئة النشطة من جميع العناصر
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                
+                // إضافة الفئة النشطة للعنصر المحدد
+                this.classList.add('active');
+                
+                // إخفاء جميع المحتويات
+                document.querySelectorAll('.page-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // إظهار المحتوى المطلوب
+                const page = this.dataset.page;
+                const content = document.getElementById(page + 'Content');
+                if (content) {
+                    content.classList.remove('hidden');
+                }
+                
+                // تحديث عنوان الصفحة
+                const titles = {
+                    'dashboard': 'لوحة التحكم الرئيسية',
+                    'tasks': 'إدارة المهام',
+                    'reports': 'التقارير والإحصائيات',
+                    'employees': 'إدارة الموظفين',
+                    'settings': 'الإعدادات'
+                };
+                
+                document.getElementById('pageTitle').textContent = titles[page] || 'النظام';
+                
+                // تحديث المخططات إذا كانت صفحة التقارير
+                if (page === 'reports') {
+                    setTimeout(initCharts, 100);
+                }
+            });
+        });
+
+        // إدارة نموذج المهمة الجديدة
+        document.getElementById('newTaskBtn').addEventListener('click', function() {
+            document.getElementById('newTaskModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('newTaskModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelModal').addEventListener('click', function() {
+            document.getElementById('newTaskModal').classList.add('hidden');
+        });
+
+        // إغلاق النموذج عند النقر خارجه
+        document.getElementById('newTaskModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // دالة عرض الإشعارات
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification p-4 rounded-lg shadow-lg mb-4`;
+            
+            const colors = {
+                'success': 'bg-green-500 text-white',
+                'error': 'bg-red-500 text-white',
+                'warning': 'bg-yellow-500 text-white',
+                'info': 'bg-blue-500 text-white'
+            };
+            
+            notification.className += ` ${colors[type]}`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle ml-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // إزالة الإشعار بعد 5 ثوانٍ
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // إعداد المخططات
+        function initCharts() {
+            // مخطط توزيع المهام
+            const statusCtx = document.getElementById('statusChart');
+            if (statusCtx) {
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['جديدة', 'قيد التنفيذ', 'مكتملة', 'متأخرة'],
+                        datasets: [{
+                            data: [24, 18, 142, 7],
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#f59e0b',
+                                '#10b981',
+                                '#ef4444'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // مخطط الأداء الشهري
+            const monthlyCtx = document.getElementById('monthlyChart');
+            if (monthlyCtx) {
+                new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                        datasets: [{
+                            label: 'المهام المكتملة',
+                            data: [65, 78, 85, 92, 88, 95],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // إظهار صفحة تسجيل الدخول في البداية
+            document.getElementById('loginPage').classList.remove('hidden');
+            
+            // إعداد الأحداث والمخططات
+            setTimeout(() => {
+                if (!document.getElementById('mainSystem').classList.contains('hidden')) {
+                    initCharts();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
