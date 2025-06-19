@@ -188,25 +188,25 @@ namespace TaskManagementSystem.API.Controllers
             public int AssignedToUserId { get; set; }
         }
 
+        //public async Task<IActionResult> UpdateTask(int id,[FromBody] UpdateTaskModel updatedTask)
 
-        // PUT: api/Task/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTask(int id, [FromBody] TaskItem updatedTask)
+        public async Task<ActionResult<TaskItem>> UpdateTask(int id, [FromBody] UpdateTaskModel updatedTask)
         {
             if (id != updatedTask.Id)
-                return BadRequest();
+                return BadRequest("المعرف لا يتطابق مع الجسم المرسل.");
 
             var existing = await _context.TaskItems.FindAsync(id);
-            if (existing == null) return NotFound();
+            if (existing == null) return NotFound("المهمة غير موجودة.");
 
-            // تحديث الحقول المسموح بها
+            // تحديث الحقول
             existing.Title = updatedTask.Title;
             existing.Description = updatedTask.Description;
             existing.Priority = updatedTask.Priority;
             existing.System = updatedTask.System;
             existing.DueDate = updatedTask.DueDate;
 
-            // عند تغيير الحالة:
+            // تحديث الحالة + حساب وقت الإكمال
             if (existing.Status != updatedTask.Status)
             {
                 existing.Status = updatedTask.Status;
@@ -214,15 +214,50 @@ namespace TaskManagementSystem.API.Controllers
                 {
                     existing.CompletedAt = DateTime.UtcNow;
                 }
-                // إذا أردت تغيير إلى Overdue من الواجهة يدوياً، أو الخدمة الخلفية تفعل ذلك.
             }
 
             existing.AssignedToUserId = updatedTask.AssignedToUserId;
 
             _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
+
+        // PUT: api/Task/5
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateTask1(int id, [FromBody] TaskItem updatedTask)
+        //{
+        //    if (id != updatedTask.Id)
+        //        return BadRequest();
+
+        //    var existing = await _context.TaskItems.FindAsync(id);
+        //    if (existing == null) return NotFound();
+
+        //    // تحديث الحقول المسموح بها
+        //    existing.Title = updatedTask.Title;
+        //    existing.Description = updatedTask.Description;
+        //    existing.Priority = updatedTask.Priority;
+        //    existing.System = updatedTask.System;
+        //    existing.DueDate = updatedTask.DueDate;
+
+        //    // عند تغيير الحالة:
+        //    if (existing.Status != updatedTask.Status)
+        //    {
+        //        existing.Status = updatedTask.Status;
+        //        if (updatedTask.Status == "Completed")
+        //        {
+        //            existing.CompletedAt = DateTime.UtcNow;
+        //        }
+        //        // إذا أردت تغيير إلى Overdue من الواجهة يدوياً، أو الخدمة الخلفية تفعل ذلك.
+        //    }
+
+        //    existing.AssignedToUserId = updatedTask.AssignedToUserId;
+
+        //    _context.Entry(existing).State = EntityState.Modified;
+        //    await _context.SaveChangesAsync();
+        //    return NoContent();
+        //}
 
         // DELETE: api/Task/5
         [HttpDelete("{id}")]

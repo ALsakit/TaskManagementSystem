@@ -53,16 +53,16 @@ namespace TaskManagementSystem.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TaskViewModel model)
         {
-        //    if (!ModelState.IsValid)
-        //    {
-        //        await RefillEmployees(model);
-        //        model.PriorityOptions = new List<SelectListItem> {
-        //    new SelectListItem("Low","Low"),
-        //    new SelectListItem("Medium","Medium"),
-        //    new SelectListItem("High","High")
-        //};
-        //        return View(model);
-        //    }
+            //    if (!ModelState.IsValid)
+            //    {
+            //        await RefillEmployees(model);
+            //        model.PriorityOptions = new List<SelectListItem> {
+            //    new SelectListItem("Low","Low"),
+            //    new SelectListItem("Medium","Medium"),
+            //    new SelectListItem("High","High")
+            //};
+            //        return View(model);
+            //    }
 
             var client = _apiClientFactory.CreateClient();
             var toSend = new
@@ -117,8 +117,6 @@ namespace TaskManagementSystem.MVC.Controllers
                 vm.Employees = new List<SelectListItem>();
             }
         }
-
-
 
 
         //[HttpGet]
@@ -243,9 +241,179 @@ namespace TaskManagementSystem.MVC.Controllers
 
             return View(model);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, TaskViewModel model)
+        {
+            if (!ModelState.IsValid && false)
+            {
+                await RefillEmployees(model); // إعادة تعبئة القائمة
+                model.PriorityOptions = new List<SelectListItem> {
+            new SelectListItem("Low", "Low"),
+            new SelectListItem("Medium", "Medium"),
+            new SelectListItem("High", "High")
+        };
+                model.StatusOptions = new List<SelectListItem> {
+            new SelectListItem("Pending", "Pending"),
+            new SelectListItem("InProgress", "InProgress"),
+            new SelectListItem("Completed", "Completed"),
+            new SelectListItem("Overdue", "Overdue")
+        };
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+            var toSend = new
+            {
+                Id = model.Id,
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                Status = model.Status
+            };
+
+            var json = JsonConvert.SerializeObject(toSend);
+            var resp = await client.PutAsync($"Task/{model.Id}", new StringContent(json, Encoding.UTF8, "application/json"));
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                await RefillEmployees(model);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "تم تعديل المهمة بنجاح.";
+            return RedirectToAction("Index");
+        }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(TaskViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit111(int id, TaskViewModel model)
+        {
+            if (!ModelState.IsValid && false)
+            {
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+
+            var toSend = new
+            {
+                Id = model.Id,
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                Status = model.Status
+            };
+
+            var json = JsonConvert.SerializeObject(toSend);
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // إرسال الطلب إلى API
+            var response = await client.PutAsync($"Task/{id}", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errBody = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"خطأ في التعديل: {errBody}");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "تم تعديل المهمة بنجاح.";
+
+            // إعادة التوجيه بعد النجاح (أفضل من البقاء في نفس الصفحة)
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit11(int id, TaskViewModel model)
+        {
+            if (!ModelState.IsValid && false)
+            {
+                await PopulateDropdowns(model); // تعبئة القوائم
+                return View(model);
+            }
+
+            var client = _apiClientFactory.CreateClient();
+
+            var toSend = new
+            {
+                Id = model.Id,
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                Status = model.Status
+            };
+
+            var json = JsonConvert.SerializeObject(toSend);
+            var response = await client.PutAsync($"Task/{id}", new StringContent(json, Encoding.UTF8, "application/json"));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errBody = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"خطأ في التعديل: {errBody}");
+                await PopulateDropdowns(model);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "تم تعديل المهمة بنجاح.";
+
+            return View(model);
+
+            //return RedirectToAction("Index");
+        }
+
+        private async Task PopulateDropdowns(TaskViewModel model)
+        {
+            var client = _apiClientFactory.CreateClient();
+            var resp = await client.GetAsync("User");
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var usersJson = await resp.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(usersJson);
+                model.Employees = users.Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Name
+                }).ToList();
+            }
+            else
+            {
+                model.Employees = new List<SelectListItem>();
+            }
+
+            model.PriorityOptions = new List<SelectListItem>
+            {
+                new SelectListItem("Low", "Low"),
+                new SelectListItem("Medium", "Medium"),
+                new SelectListItem("High", "High")
+            };
+
+            model.StatusOptions = new List<SelectListItem>
+            {
+                new SelectListItem("Pending", "Pending"),
+                new SelectListItem("InProgress", "In Progress"),
+                new SelectListItem("Completed", "Completed"),
+                new SelectListItem("Overdue", "Overdue")
+            };
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit11(TaskViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -262,18 +430,18 @@ namespace TaskManagementSystem.MVC.Controllers
                     }).ToList();
                 }
                 model.PriorityOptions = new List<SelectListItem>
-        {
-            new SelectListItem("Low", "Low"),
-            new SelectListItem("Medium", "Medium"),
-            new SelectListItem("High", "High")
-        };
+                {
+                    new SelectListItem("Low", "Low"),
+                    new SelectListItem("Medium", "Medium"),
+                    new SelectListItem("High", "High")
+                };
                 model.StatusOptions = new List<SelectListItem>
-        {
-            new SelectListItem("Pending", "Pending"),
-            new SelectListItem("InProgress", "In Progress"),
-            new SelectListItem("Completed", "Completed"),
-            new SelectListItem("Overdue", "Overdue")
-        };
+                {
+                    new SelectListItem("Pending", "Pending"),
+                    new SelectListItem("InProgress", "In Progress"),
+                    new SelectListItem("Completed", "Completed"),
+                    new SelectListItem("Overdue", "Overdue")
+                };
                 return View(model);
             }
 
@@ -332,7 +500,6 @@ namespace TaskManagementSystem.MVC.Controllers
     };
             return View(model);
         }
-
         public class UpdateTaskModel
         {
             public int Id { get; set; }
@@ -344,6 +511,18 @@ namespace TaskManagementSystem.MVC.Controllers
             public string Status { get; set; }
             public int AssignedToUserId { get; set; }
         }
+
+        //public class UpdateTaskModel
+        //{
+        //    public int Id { get; set; }
+        //    public string Title { get; set; }
+        //    public string Description { get; set; }
+        //    public string Priority { get; set; }
+        //    public string System { get; set; }
+        //    public DateTime? DueDate { get; set; }
+        //    public string Status { get; set; }
+        //    public int AssignedToUserId { get; set; }
+        //}
 
 
 
