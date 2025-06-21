@@ -1,0 +1,172 @@
+﻿@model TaskManagementSystem.MVC.Models.TaskDetailsViewModel
+@{
+    Layout = "_Layout"; 
+    ViewData["Title"] = "تفاصيل المهمة";
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>نظام إدارة المهام - الإشعارات</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        .rtl { direction: rtl; }
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        .notification-dropdown {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        /* يمكنك إضافة باقي الأنماط إذا أردت */
+    </style>
+</head>
+<body class="bg-gray-50 font-sans rtl">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-tasks text-blue-600 ml-2"></i>
+                    نظام إدارة المهام
+                </h1>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <!-- Notifications Bell -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center notification-badge hidden">0</span>
+                        </button>
+                        <!-- Notifications Dropdown -->
+                        <div id="notificationDropdown" class="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border hidden z-50">
+                            <div class="p-4 border-b">
+                                <h3 class="font-semibold text-gray-800">الإشعارات</h3>
+                            </div>
+                            <div id="notificationList" class="notification-dropdown p-2">
+                                <!-- الإشعارات تظهر هنا -->
+                            </div>
+                            <div class="p-3 border-t text-center">
+                                <button id="markAllRead" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    تحديد الكل كمقروء
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="flex items-center">
+                        <img src="https://via.placeholder.com/32x32/4F46E5/FFFFFF?text=ح" alt="User" class="w-8 h-8 rounded-full ml-2" />
+                        <span class="text-gray-700">حسام أحمد</span>
+                    </div>*@
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-xl font-bold mb-4">قائمة الإشعارات</h2>
+        <div id="notificationList" class="notification-dropdown border rounded-lg bg-white p-4 max-h-[400px] overflow-y-auto">
+            <!-- سيتم ملء الإشعارات هنا -->
+        </div>
+
+
+      
+    </main>
+
+    <script>
+        // يمكنك إعادة استخدام نفس كود إشعارات الجافاسكريبت الذي وضعته في صفحتك السابقة
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const notificationList = document.getElementById('notificationList');
+        const markAllReadBtn = document.getElementById('markAllRead');
+
+        let notifications = [];
+
+        function showNotification(message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                message,
+                type,
+                timestamp: new Date().toLocaleString('ar-SA'),
+                read: false
+            };
+            notifications.unshift(notification);
+            updateNotificationBadge();
+            addNotificationToDropdown(notification);
+        }
+
+        function updateNotificationBadge() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount;
+                notificationBadge.classList.remove('hidden');
+            } else {
+                notificationBadge.classList.add('hidden');
+            }
+        }
+
+        function addNotificationToDropdown(notification) {
+            const el = document.createElement('div');
+            el.className = `p-3 border-b hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`;
+            el.innerHTML = `
+                <div class="flex items-start space-x-3 space-x-reverse">
+                    <div class="flex-shrink-0">
+                        <i class="fas ${getNotificationIcon(notification.type)} text-blue-600"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900">${notification.message}</p>
+                        <p class="text-xs text-gray-500 mt-1">${notification.timestamp}</p>
+                    </div>
+                    ${!notification.read ? '<div class="w-2 h-2 bg-blue-600 rounded-full"></div>' : ''}
+                </div>
+            `;
+
+            el.addEventListener('click', () => {
+                notification.read = true;
+                el.classList.remove('bg-blue-50');
+                el.querySelector('.w-2')?.remove();
+                updateNotificationBadge();
+            });
+
+            notificationList.insertBefore(el, notificationList.firstChild);
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'comment': return 'fa-comment';
+                case 'status': return 'fa-sync';
+                case 'alert': return 'fa-exclamation-triangle';
+                default: return 'fa-bell';
+            }
+        }
+
+        notificationBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            notificationDropdown.classList.add('hidden');
+        });
+
+        markAllReadBtn.addEventListener('click', () => {
+            notifications.forEach(n => n.read = true);
+            updateNotificationBadge();
+            Array.from(notificationList.children).forEach(el => {
+                el.classList.remove('bg-blue-50');
+                el.querySelector('.w-2')?.remove();
+            });
+        });
+
+        // لمجرد التجربة: أضف بعض الإشعارات
+        document.addEventListener('DOMContentLoaded', () => {
+            showNotification("مرحباً! يمكنك الآن متابعة التحديثات المباشرة", "info");
+            showNotification("تم تحديث حالة مهمة", "status");
+            showNotification("تعليق جديد من أحمد محمد", "comment");
+            showNotification("تنبيه: مهمة تقترب من موعد الانتهاء", "alert");
+        });
+    </script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</body>
+</html>
+

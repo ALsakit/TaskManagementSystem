@@ -332,9 +332,83 @@ namespace TaskManagementSystem.API.Controllers
 
             return Ok(tasks);
         }
+        // GET: api/Task/{id}/comments
+        [HttpGet("{id}/comments")]
+        [AllowAnonymous] // أو حسب صلاحياتك
+        public async Task<ActionResult<IEnumerable<TaskCommentDto>>> GetComments(int id)
+        {
+            var comments = await _context.TaskComments
+               .Where(c => c.TaskItemId == id)
+                .Select(c => new TaskCommentDto
+                {
+                    Id = c.Id,
+                    CommentText = c.CommentText,
+                    CreatedAt = c.CreatedAt,
+                    TaskItemId = c.TaskItemId,
+                    UserId = c.UserId,
+                    UserName = c.User.Name
+                })
+                .ToListAsync();
+
+            return Ok(comments);
+        }
+
+        // DTO لاستقبال بيانات التعليق الجديد
+        public class CreateCommentModel
+        {
+            public string CommentText { get; set; }
+            public int UserId { get; set; }
+        }
+
+        // POST: api/Task/{id}/comments
+        [HttpPost("{id}/comments")]
+        [AllowAnonymous]  // أو حسب صلاحياتك
+        public async Task<ActionResult<TaskCommentDto>> AddComment(int id, [FromBody] CreateCommentModel model)
+        {
+            // 1) تأكد وجود المهمة
+            var task = await _context.TaskItems.FindAsync(id);
+            if (task == null)
+                return NotFound($"المهمة {id} غير موجودة.");
+
+            // 2) أنشئ كيان التعليق
+            var comment = new TaskComment
+            {
+                TaskItemId = id,
+                CommentText = model.CommentText,
+                CreatedAt = DateTime.UtcNow,
+                UserId = model.UserId
+            };
+            _context.TaskComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            // 3) حضّر الـ DTO للرد
+            var dto = new TaskCommentDto
+            {
+                Id = comment.Id,
+                CommentText = comment.CommentText,
+                CreatedAt = comment.CreatedAt,
+                TaskItemId = comment.TaskItemId,
+                UserId = comment.UserId,
+                UserName = (await _context.Users.FindAsync(comment.UserId))?.Name
+            };
+
+            return CreatedAtAction(nameof(GetComments), new { id }, dto);
+        }
 
 
     }
+
+
+    public class TaskCommentDto
+    {
+        public int Id { get; set; }
+        public string CommentText { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int TaskItemId { get; set; }
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+    }
+
     public class RecentTaskDto
     {
         public string Title { get; set; }

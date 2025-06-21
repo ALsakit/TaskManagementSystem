@@ -145,6 +145,7 @@
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold">قائمة المهام</h2>
         <a asp-action="Create" class="btn-primary">+ مهمة جديدة</a>
+        @*<a asp-action="Notifications" class="btn-secondary">التعليقات والإشعارات</a>*@
     </div>
 
     <div class="overflow-x-auto">
@@ -183,6 +184,7 @@
                         <td class="px-4 py-2 text-right">@task.AssignedToName</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-500 hover:underline">تعديل</a>
+                            <a asp-action="Details" asp-route-id="@task.Id" class="text-indigo-600 hover:underline">تفاصيل</a>
                             @if (role == "Manager" || role == "Admin")
                             {
                                <form asp-action="Delete" asp-route-id="@task.Id" method="post" class="inline-block" onsubmit="return confirmDelete(this, '@task.Title');">
@@ -263,3 +265,4 @@
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 </script>
+ <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />

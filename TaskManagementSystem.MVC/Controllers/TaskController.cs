@@ -500,6 +500,49 @@ namespace TaskManagementSystem.MVC.Controllers
     };
             return View(model);
         }
+
+        // GET: /Task/Notifications
+        public IActionResult Notifications()
+        {
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var client = _apiClientFactory.CreateClient();
+
+            // 1) جلب بيانات المهمة
+            var respTask = await client.GetAsync($"Task/{id}");
+            if (!respTask.IsSuccessStatusCode)
+                return RedirectToAction("Index");
+
+            var taskJson = await respTask.Content.ReadAsStringAsync();
+            var task = JsonConvert.DeserializeObject<TaskViewModel>(taskJson);
+
+            // 2) جلب التعليقات
+            var respComments = await client.GetAsync($"Task/{id}/comments");
+            List<TaskCommentDto> comments = new();
+            if (respComments.IsSuccessStatusCode)
+            {
+                var commJson = await respComments.Content.ReadAsStringAsync();
+                comments = JsonConvert.DeserializeObject<List<TaskCommentDto>>(commJson);
+            }
+
+            // 3) استخراج UserId من الجلسة
+            int currentUserId = 0;
+            if (HttpContext.Session.GetString("UserId") != null)
+                currentUserId = int.Parse(HttpContext.Session.GetString("UserId"));
+
+            var vm = new TaskDetailsViewModel
+            {
+                Task = task,
+                Comments = comments,
+                CurrentUserId = currentUserId // أضف هذا
+            };
+
+            return View(vm);
+        }
+
         public class UpdateTaskModel
         {
             public int Id { get; set; }
