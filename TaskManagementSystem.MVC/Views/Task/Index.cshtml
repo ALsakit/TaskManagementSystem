@@ -2,267 +2,728 @@
 @{
     ViewData["Title"] = "قائمة المهام";
     var role = Context.Session.GetString("UserRole");
-    //var role = "Admin"; // "Manager" أو "User" حسب ما تريد تجربته
 }
-@*<h2>قائمة المهام</h2>
-<a asp-action="Create" class="btn btn-success mb-3">+ مهمة جديدة</a>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>العنوان</th>
-            <th>الوصف</th>
-            <th>الأولوية</th>
-            <th>النظام</th>
-            <th>الحالة</th>
-            <th>الموظف المسؤول</th>
-            <th>إجراءات</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach(var task in Model)
-    {
-        <tr>
-            <td>@task.Title</td>
-            <td>@task.Description</td>
-            <td>@task.Priority</td>
-            <td>@task.System</td>
-            <td>@task.Status</td>
-            <td>@task.AssignedToName</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-primary">تعديل</a>
-                @if(role == "Manager" || role == "Admin")
-                {
-                    <form asp-action="Delete" asp-route-id="@task.Id" method="post" style="display:inline-block">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل متأكد من الحذف؟');">حذف</button>
-                    </form>
-                }
-            </td>
-        </tr>
+
+<!-- CSS مخصص للنماذج المنبثقة والتحسينات -->
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
     }
-    </tbody>
-</table>
-*@
-@*
 
-@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
-@{
-    ViewData["Title"] = "قائمة المهام";
-  //  var role = Context.Session.GetString("UserRole");
-}
-*@
- @*<div class="mb-8">
-                <h3 class="text-2xl font-semibold mb-4 text-gray-700">لوحة التحكم الرئيسية</h3>
-                <div class="bg-white rounded-lg shadow-lg p-8 border">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 class="text-xl font-semibold">مرحباً، أحمد محمد</h4>
-                        <div class="flex space-x-4 space-x-reverse">
-
-
-
-                            <button asp-action="Create" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
-                                <i class="fas fa-plus ml-2"></i>
-                                مهمة جديدة
-                            </button>
-                             <a asp-action="Create" class="btn-primary bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">+ مهمة جديدة</a>
-                            <div class="relative">
-                                <i class="fas fa-bell text-xl text-gray-600 relative">
-                                    <span
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                                </i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-4 gap-4 mb-8">
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-2xl font-bold text-blue-800">@Model.NewTasks</div>
-                                    <div class="text-blue-600">مهام جديدة</div>
-                                </div>
-                                <i class="fas fa-plus-circle text-2xl text-blue-600"></i>
-                            </div>
-                        </div>
-                        <div class="bg-yellow-50 p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-2xl font-bold text-yellow-800">@Model.InProgressTasks</div>
-                                    <div class="text-yellow-600">قيد التنفيذ</div>
-                                </div>
-                                <i class="fas fa-sync-alt text-2xl text-yellow-600"></i>
-                            </div>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-2xl font-bold text-green-800">@Model.CompletedTasks</div>
-                                    <div class="text-green-600">مكتملة</div>
-                                </div>
-                                <i class="fas fa-check-circle text-2xl text-green-600"></i>
-                            </div>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-2xl font-bold text-red-800">@Model.OverdueTasks</div>
-                                    <div class="text-red-600">متأخرة</div>
-                                </div>
-                                <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border-t pt-6">
-                        <h5 class="text-lg font-semibold mb-4">المهام الأخيرة</h5>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-red-500 rounded-full ml-3"></div>
-                                    <div>
-                                        <div class="font-semibold">تطوير واجهة تسجيل الدخول</div>
-                                        <div class="text-sm text-gray-600">تم التعيين إلى: سارة أحمد</div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-500">منذ ساعتين</div>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-yellow-500 rounded-full ml-3"></div>
-                                    <div>
-                                        <div class="font-semibold">إصلاح مشكلة في قاعدة البيانات</div>
-                                        <div class="text-sm text-gray-600">تم التعيين إلى: محمد علي</div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-500">أمس</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-*@
-            
-<div class="card">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold">قائمة المهام</h2>
-        <a asp-action="Create" class="btn-primary">+ مهمة جديدة</a>
-        @*<a asp-action="Notifications" class="btn-secondary">التعليقات والإشعارات</a>*@
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="px-4 py-2 text-right">العنوان</th>
-                    <th class="px-4 py-2 text-right">الأولوية</th>
-                    <th class="px-4 py-2 text-right">النظام</th>
-                    <th class="px-4 py-2 text-right">الحالة</th>
-                    <th class="px-4 py-2 text-right">الموظف المسؤول</th>
-                    <th class="px-4 py-2 text-right">إجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var task in Model)
-                {
-                    <tr class="border-b">
-                        <td class="px-4 py-2 text-right">@task.Title</td>
-                        <td class="px-4 py-2 text-right">@task.Priority</td>
-                        <td class="px-4 py-2 text-right">@task.System</td>
-                        <td class="px-4 py-2 text-right">
-                            @if (task.Status == "Overdue")
-                            {
-                                <span class="text-red-600 font-semibold">@task.Status</span>
-                            }
-                            else if (task.Status == "Completed")
-                            {
-                                <span class="text-green-600 font-semibold">@task.Status</span>
-                            }
-                            else
-                            {
-                                <span class="text-gray-700">@task.Status</span>
-                            }
-                        </td>
-                        <td class="px-4 py-2 text-right">@task.AssignedToName</td>
-                        <td class="px-4 py-2 text-right space-x-2">
-                            <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-500 hover:underline">تعديل</a>
-                            <a asp-action="Details" asp-route-id="@task.Id" class="text-indigo-600 hover:underline">تفاصيل</a>
-                            @if (role == "Manager" || role == "Admin")
-                            {
-                               <form asp-action="Delete" asp-route-id="@task.Id" method="post" class="inline-block" onsubmit="return confirmDelete(this, '@task.Title');">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="text-red-600 hover:text-red-800 mx-2">حذف</button>
-</form>
-                            }
-                        </td>
-                        @*<td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-    <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
-    @if (role == "Manager" || role == "Admin")
-    {
-        <a href="#" class="text-red-600 hover:text-red-800 mx-2"
-           onclick="confirmDelete(@task.Id, '@task.Title')">حذف</a>
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
     }
-</td>
-*@
-                    </tr>
-                }
-            </tbody>
-        </table>
+
+    .modal-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        z-index: 1001;
+        transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-container {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .task-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .task-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .task-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border-color: #3b82f6;
+    }
+
+    .priority-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .priority-high {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #dc2626;
+        border: 1px solid #f87171;
+    }
+
+    .priority-medium {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #d97706;
+        border: 1px solid #f59e0b;
+    }
+
+    .priority-low {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #059669;
+        border: 1px solid #10b981;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+        border: 1px solid #10b981;
+    }
+
+    .status-overdue {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #991b1b;
+        border: 1px solid #ef4444;
+    }
+
+    .status-pending {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1e40af;
+        border: 1px solid #3b82f6;
+    }
+
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        color: white;
+    }
+
+    .btn-details {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+    }
+
+    .btn-details:hover {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        color: white;
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+    }
+
+    .btn-primary-new {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-new:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    
+
+    .search-container {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 16px 20px 16px 50px;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+
+   
+</style>
+
+<!-- رأس الصفحة المحسن -->
+<div class="header-section">
+    <div class="flex justify-between items-center relative z-10">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">قائمة المهام</h1>
+            <p class="text-blue-100">إدارة وتتبع جميع المهام بكفاءة</p>
+        </div>
+        <button onclick="openCreateModal()" class="btn-primary-new">
+            <i class="fas fa-plus"></i>
+            مهمة جديدة
+        </button>
     </div>
 </div>
 
+<!-- إحصائيات سريعة -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-blue-600" id="totalTasks">@Model.Count()</div>
+        <div class="text-gray-600">إجمالي المهام</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-green-600" id="completedTasks">@Model.Count(t => t.Status == "Completed")</div>
+        <div class="text-gray-600">مهام مكتملة</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-red-600" id="overdueTasks">@Model.Count(t => t.Status == "Overdue")</div>
+        <div class="text-gray-600">مهام متأخرة</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-yellow-600" id="pendingTasks">@Model.Count(t => t.Status != "Completed" && t.Status != "Overdue")</div>
+        <div class="text-gray-600">مهام قيد التنفيذ</div>
+    </div>
+</div>
 
-@*<form method="post">
-    @Html.AntiForgeryToken()
-</form>*@
+<!-- شريط البحث والفلترة -->
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="البحث في المهام..." onkeyup="filterTasks()">
+    <i class="fas fa-search search-icon"></i>
+</div>
 
+<!-- فلاتر -->
+<div class="flex flex-wrap gap-4 mb-6">
+    <select id="priorityFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterTasks()">
+        <option value="">جميع الأولويات</option>
+        <option value="High">عالية</option>
+        <option value="Medium">متوسطة</option>
+        <option value="Low">منخفضة</option>
+    </select>
+    <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterTasks()">
+        <option value="">جميع الحالات</option>
+        <option value="Completed">مكتملة</option>
+        <option value="Overdue">متأخرة</option>
+        <option value="Pending">قيد التنفيذ</option>
+    </select>
+</div>
+
+<!-- قائمة المهام -->
+<div class="loading-spinner" id="loadingSpinner"></div>
+
+<div class="grid gap-6" id="tasksContainer">
+    @foreach (var task in Model)
+    {
+        <div class="task-card p-6" data-title="@task.Title.ToLower()" data-priority="@task.Priority" data-status="@task.Status">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex-1">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">@task.Title</h3>
+                    <p class="text-gray-600 mb-3">@task.Description</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                        <span><i class="fas fa-calendar-alt ml-1"></i>@task.DueDate?.ToString("dd/MM/yyyy")</span>
+                        <span><i class="fas fa-desktop ml-1"></i>@task.System</span>
+                        <span><i class="fas fa-user ml-1"></i>@task.AssignedToName</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-3">
+                    <span class="priority-badge priority-@task.Priority.ToLower()">@task.Priority</span>
+                    <span class="status-badge status-@(task.Status == "Completed" ? "completed" : task.Status == "Overdue" ? "overdue" : "pending")">
+                        @if (task.Status == "Completed")
+                        {
+                            <i class="fas fa-check-circle"></i>
+                        }
+                        else if (task.Status == "Overdue")
+                        {
+                            <i class="fas fa-exclamation-triangle"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-clock"></i>
+                        }
+                        @task.Status
+                    </span>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onclick="openEditModal(@task.Id)" class="action-btn btn-edit">
+                    <i class="fas fa-edit"></i>
+                    تعديل
+                </button>
+                <a asp-action="Details" asp-route-id="@task.Id" class="action-btn btn-details">
+                    <i class="fas fa-eye"></i>
+                    تفاصيل
+                </a>
+                @if (role == "Manager" || role == "Admin")
+                {
+                    <button onclick="confirmDelete(@task.Id, '@task.Title')" class="action-btn btn-delete">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- النموذج المنبثق للإنشاء والتعديل -->
+<div id="taskModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">مهمة جديدة</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="taskForm" class="grid md:grid-cols-2 gap-6">
+                <input type="hidden" id="taskId" name="Id" />
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        عنوان المهمة <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="taskTitle" name="Title" required 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="أدخل عنوان المهمة" />
+                    <span class="text-red-500 text-sm" id="titleError"></span>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        الأولوية <span class="text-red-500">*</span>
+                    </label>
+                    <select id="taskPriority" name="Priority" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- اختر الأولوية --</option>
+                        <option value="Low">منخفضة</option>
+                        <option value="Medium">متوسطة</option>
+                        <option value="High">عالية</option>
+                    </select>
+                    <span class="text-red-500 text-sm" id="priorityError"></span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">وصف المهمة</label>
+                    <textarea id="taskDescription" name="Description" rows="4" 
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                              placeholder="أدخل وصف تفصيلي للمهمة"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">النظام المرتبط</label>
+                    <input type="text" id="taskSystem" name="System" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="أدخل النظام المرتبط" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">تاريخ الاستحقاق</label>
+                    <input type="date" id="taskDueDate" name="DueDate" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <div id="statusField" style="display: none;">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">الحالة</label>
+                    <select id="taskStatus" name="Status" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- اختر الحالة --</option>
+                        <option value="Pending">قيد التنفيذ</option>
+                        <option value="Completed">مكتملة</option>
+                        <option value="Overdue">متأخرة</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        تعيين إلى <span class="text-red-500">*</span>
+                    </label>
+                    <select id="taskAssignedTo" name="AssignedToUserId" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- اختر موظفًا --</option>
+                        <!-- سيتم ملء هذه القائمة ديناميكيًا -->
+                    </select>
+                    <span class="text-red-500 text-sm" id="assignedToError"></span>
+                </div>
+
+                <div class="md:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200">
+                        إلغاء
+                    </button>
+                    <button type="submit" id="submitBtn" 
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+                        <span id="submitText">إنشاء المهمة</span>
+                        <i id="submitSpinner" class="fas fa-spinner fa-spin ml-2" style="display: none;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- سكريبت JavaScript للتفاعل -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmDelete(form, taskTitle) {
-        event.preventDefault(); // نمنع الإرسال
+    let isEditMode = false;
+    let employees = [];
+
+    // تحميل قائمة الموظفين
+    async function loadEmployees() {
+        try {
+            // هنا يجب استدعاء API للحصول على قائمة الموظفين
+            // مؤقتًا سنستخدم بيانات وهمية
+            employees = [
+                { value: "1", text: "أحمد محمد" },
+                { value: "2", text: "فاطمة علي" },
+                { value: "3", text: "محمد حسن" }
+            ];
+            
+            const select = document.getElementById('taskAssignedTo');
+            select.innerHTML = '<option value="">-- اختر موظفًا --</option>';
+            employees.forEach(emp => {
+                select.innerHTML += `<option value="${emp.value}">${emp.text}</option>`;
+            });
+        } catch (error) {
+            console.error('خطأ في تحميل قائمة الموظفين:', error);
+        }
+    }
+
+    // فتح نموذج الإنشاء
+    function openCreateModal() {
+        isEditMode = false;
+        document.getElementById('modalTitle').textContent = 'مهمة جديدة';
+        document.getElementById('submitText').textContent = 'إنشاء المهمة';
+        document.getElementById('statusField').style.display = 'none';
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskId').value = '';
+        clearErrors();
+        document.getElementById('taskModal').classList.add('active');
+        loadEmployees();
+    }
+
+    // فتح نموذج التعديل
+    async function openEditModal(taskId) {
+        isEditMode = true;
+        document.getElementById('modalTitle').textContent = 'تعديل مهمة';
+        document.getElementById('submitText').textContent = 'حفظ التعديلات';
+        document.getElementById('statusField').style.display = 'block';
+        clearErrors();
+        
+        try {
+            // هنا يجب استدعاء API للحصول على بيانات المهمة
+            // مؤقتًا سنستخدم بيانات وهمية
+            const taskData = {
+                id: taskId,
+                title: "مهمة تجريبية",
+                priority: "High",
+                description: "وصف المهمة",
+                system: "النظام الأساسي",
+                dueDate: "2024-12-31",
+                status: "Pending",
+                assignedToUserId: "1"
+            };
+            
+            document.getElementById('taskId').value = taskData.id;
+            document.getElementById('taskTitle').value = taskData.title;
+            document.getElementById('taskPriority').value = taskData.priority;
+            document.getElementById('taskDescription').value = taskData.description;
+            document.getElementById('taskSystem').value = taskData.system;
+            document.getElementById('taskDueDate').value = taskData.dueDate;
+            document.getElementById('taskStatus').value = taskData.status;
+            document.getElementById('taskAssignedTo').value = taskData.assignedToUserId;
+            
+            await loadEmployees();
+            document.getElementById('taskModal').classList.add('active');
+        } catch (error) {
+            console.error('خطأ في تحميل بيانات المهمة:', error);
+            Swal.fire('خطأ', 'حدث خطأ في تحميل بيانات المهمة', 'error');
+        }
+    }
+
+    // إغلاق النموذج
+    function closeModal() {
+        document.getElementById('taskModal').classList.remove('active');
+        document.getElementById('taskForm').reset();
+        clearErrors();
+    }
+
+    // مسح رسائل الخطأ
+    function clearErrors() {
+        document.getElementById('titleError').textContent = '';
+        document.getElementById('priorityError').textContent = '';
+        document.getElementById('assignedToError').textContent = '';
+    }
+
+    // إرسال النموذج
+    document.getElementById('taskForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitSpinner = document.getElementById('submitSpinner');
+        
+        // إظهار حالة التحميل
+        submitBtn.disabled = true;
+        submitSpinner.style.display = 'inline-block';
+        submitText.textContent = isEditMode ? 'جاري الحفظ...' : 'جاري الإنشاء...';
+        
+        try {
+            const formData = new FormData(this);
+            const url = isEditMode ? `/Task/Edit/${formData.get('Id')}` : '/Task/Create';
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+            
+            if (response.ok) {
+                Swal.fire({
+                    title: 'نجح!',
+                    text: isEditMode ? 'تم حفظ التعديلات بنجاح' : 'تم إنشاء المهمة بنجاح',
+                    icon: 'success',
+                    confirmButtonText: 'موافق'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                throw new Error('فشل في العملية');
+            }
+        } catch (error) {
+            console.error('خطأ:', error);
+            Swal.fire('خطأ', 'حدث خطأ أثناء العملية', 'error');
+        } finally {
+            // إخفاء حالة التحميل
+            submitBtn.disabled = false;
+            submitSpinner.style.display = 'none';
+            submitText.textContent = isEditMode ? 'حفظ التعديلات' : 'إنشاء المهمة';
+        }
+    });
+
+    // تأكيد الحذف
+    function confirmDelete(taskId, taskTitle) {
         Swal.fire({
             title: 'هل أنت متأكد؟',
             text: `سيتم حذف المهمة (${taskTitle}) نهائيًا!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'نعم، احذف',
-            cancelButtonText: 'إلغاء'
+            cancelButtonText: 'إلغاء',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280'
         }).then((result) => {
             if (result.isConfirmed) {
-                form.submit(); // إرسال النموذج بعد التأكيد
+                deleteTask(taskId);
             }
         });
-
-        return false;
     }
-    //function confirmDelete(taskId, taskTitle) {
-    //    Swal.fire({
-    //        title: 'هل أنت متأكد؟',
-    //        text: `سيتم حذف المهمة (${taskTitle}) نهائيًا!`,
-    //        icon: 'warning',
-    //        showCancelButton: true,
-    //        confirmButtonText: 'نعم، احذف',
-    //        cancelButtonText: 'إلغاء'
-    //    }).then((result) => {
-    //        if (result.isConfirmed) {
-    //            fetch(`/Task/DeleteConfirmed/${taskId}`, {
-    //                method: 'POST',
-    //                headers: {
-    //                    'RequestVerificationToken': getAntiForgeryToken()
-    //                }
-    //            })
-    //            .then(res => {
-    //                if (res.ok) {
-    //                    Swal.fire('تم الحذف!', 'تم حذف المهمة بنجاح.', 'success')
-    //                        .then(() => location.reload());
-    //                } else {
-    //                    Swal.fire('خطأ!', 'فشل حذف المهمة.', 'error');
-    //                }
-    //            });
-    //        }
-    //    });
-    //}
 
-    function getAntiForgeryToken() {
-        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    // حذف المهمة
+    async function deleteTask(taskId) {
+        try {
+            const response = await fetch(`/Task/Delete/${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+            
+            if (response.ok) {
+                Swal.fire('تم الحذف!', 'تم حذف المهمة بنجاح', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                throw new Error('فشل في الحذف');
+            }
+        } catch (error) {
+            console.error('خطأ في الحذف:', error);
+            Swal.fire('خطأ', 'حدث خطأ أثناء حذف المهمة', 'error');
+        }
     }
+
+    // فلترة المهام
+    function filterTasks() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const priorityFilter = document.getElementById('priorityFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const taskCards = document.querySelectorAll('.task-card');
+        
+        taskCards.forEach(card => {
+            const title = card.getAttribute('data-title');
+            const priority = card.getAttribute('data-priority');
+            const status = card.getAttribute('data-status');
+            
+            const matchesSearch = title.includes(searchTerm);
+            const matchesPriority = !priorityFilter || priority === priorityFilter;
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            if (matchesSearch && matchesPriority && matchesStatus) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // إغلاق النموذج عند النقر خارجه
+    document.getElementById('taskModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // إغلاق النموذج بمفتاح Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        loadEmployees();
+    });
 </script>
- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+
+@Html.AntiForgeryToken()
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+

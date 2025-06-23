@@ -240,8 +240,12 @@
                    class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Employee" ? "bg-indigo-700" : "")">
                     <i class="fas fa-users ml-3"></i>الموظفون
                 </a>
-                <a asp-controller="Task" asp-action="Notifications" asp-route-id="1"
+                @*<a asp-controller="Notifications" asp-action="Index" asp-route-id="1"
        class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
+        <i class="fas fa-bell ml-3"></i>الإشعارات
+    </a>*@
+    <a asp-controller="Notifications" asp-action="Index"
+       class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Notifications" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
         <i class="fas fa-bell ml-3"></i>الإشعارات
     </a>
                 <a asp-controller="Auth" asp-action="Logout"

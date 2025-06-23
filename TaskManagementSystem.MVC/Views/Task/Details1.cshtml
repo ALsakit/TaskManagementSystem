@@ -1,0 +1,575 @@
+﻿@model TaskManagementSystem.MVC.Models.TaskDetailsViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "تفاصيل المهمة";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - نظام إدارة المهام</title>
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <!-- FontAwesome -->
+
+    <style>
+        .rtl {
+            direction: rtl;
+        }
+
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+
+        .comment-item {
+            transition: all 0.3s ease;
+        }
+
+            .comment-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+        .notification-dropdown {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans rtl">
+
+    <!-- Header (من Layout إذا أردت) -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">
+                <i class="fas fa-tasks text-blue-600 ml-2"></i> نظام إدارة المهام
+            </h1>
+            <div class="flex items-center space-x-reverse space-x-4">
+                <div class="relative">
+                    @* <button id="notificationBtn" class="p-2 text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center notification-badge hidden">0</span>
+                        </button>*@
+
+                    <div id="notificationDropdown" class="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border hidden z-50">
+                        <div class="p-4 border-b"><h3 class="font-semibold">الإشعارات</h3></div>
+                        <div id="notificationList" class="notification-dropdown"></div>
+                        <div class="p-3 border-t text-center">
+                            <button id="markAllRead" class="text-blue-600 hover:text-blue-800 text-sm">تحديد الكل كمقروء</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <img src="" class="w-8 h-8 rounded-full ml-2" alt="User" />
+                    <span class="text-gray-700">@User.Identity.Name</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- بطاقة تفاصيل المهمة -->
+            <div class="lg:col-span-1 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">تفاصيل المهمة</h2>
+                <div class="space-y-3 text-gray-700">
+                    <div>
+                        <span class="font-semibold">العنوان:</span>
+                        @Model.Task.Title
+                    </div>
+                    <div>
+                        <span class="font-semibold">الوصف:</span>
+                        @Model.Task.Description
+                    </div>
+                    <div>
+                        <span class="font-semibold">الحالة:</span>
+                        <span class="inline-block px-2 py-1 rounded-full text-sm
+                            @(Model.Task.Status=="Completed" ? "bg-green-100 text-green-800"
+                              : Model.Task.Status=="Overdue"   ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800")">
+                            @Model.Task.Status
+                        </span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">الأولوية:</span>
+                        @Model.Task.Priority
+                    </div>
+                    <div>
+                        <span class="font-semibold">النظام:</span>
+                        @Model.Task.System
+                    </div>
+                    <div>
+                        <span class="font-semibold">تاريخ الانتهاء:</span>
+                        @Model.Task.DueDate?.ToString("yyyy-MM-dd")
+                    </div>
+                    <div>
+                        <span class="font-semibold">المسؤول:</span>
+                        @Model.Task.AssignedToName
+                    </div>
+                </div>
+            </div>
+
+            <!-- قسم التعليقات -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md">
+                    <!-- رأس التعليقات -->
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-bold text-gray-800">
+                            <i class="fas fa-comments text-blue-600 ml-2"></i>
+                            التعليقات
+                            <span id="commentsCount" class="text-gray-500">(@Model.Comments.Count)</span>
+                        </h2>
+                    </div>
+
+                    <!-- إضافة تعليق جديد -->
+                    <div class="p-6 border-b bg-gray-50">
+                        <form id="commentForm">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">إضافة تعليق جديد</label>
+                                <textarea id="commentText" rows="4" required
+                                          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500 resize-none"
+                                          placeholder="اكتب تعليقك هنا..."></textarea>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs text-gray-500">
+                                    سيتم إرسال إشعار فوري لجميع المشاركين
+                                </div>
+                                <button type="submit" id="submitComment"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg flex items-center">
+                                    <div id="submitSpinner" class="loading-spinner mr-2 hidden"></div>
+                                    <span id="submitText">إضافة تعليق</span>
+                                    <i id="submitIcon" class="fas fa-paper-plane mr-2"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- قائمة التعليقات -->
+                    <div id="commentsList" class="divide-y divide-gray-200 p-6">
+                        @foreach (var c in Model.Comments)
+                        {
+                            <div class="comment-item py-4">
+                                <div class="flex items-start space-x-3 space-x-reverse">
+                                    -
+                                    +               <img src="" class="w-10 h-10 rounded-full" alt="@c.UserName" />
+                                    <div class="flex-1">
+                                        <div class="flex justify-between mb-2">
+                                            -
+                                            +                       <h4 class="font-semibold text-gray-900">@c.UserName</h4>
+                                            <span class="text-sm text-gray-500">@c.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        </div>
+                                        -
+                                        +                   <p class="text-gray-700">@c.CommentText</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                @*    كمثال *@
+                @*  كمثال*@
+         <!-- Comments List -->
+                    <div id="commentsList" class="divide-y divide-gray-200">
+                        <!-- Existing Comments -->
+                        <div class="comment-item p-6">
+                            <div class="flex items-start space-x-3 space-x-reverse">
+                                <img src="https://via.placeholder.com/40x40/10B981/FFFFFF?text=م" alt="محمد علي" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-900">محمد علي</h4>
+                                        <span class="text-sm text-gray-500">منذ ساعتين</span>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">تم الانتهاء من تصميم قاعدة البيانات وبدء العمل على API endpoints. سيتم الانتهاء خلال يومين.</p>
+                                    <div class="flex items-center space-x-4 space-x-reverse text-sm text-gray-500">
+                                        <button class="hover:text-blue-600 transition-colors">
+                                            <i class="fas fa-reply ml-1"></i>
+                                            رد
+                                        </button>
+                                        <button class="hover:text-red-600 transition-colors">
+                                            <i class="fas fa-edit ml-1"></i>
+                                            تعديل
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-item p-6">
+                            <div class="flex items-start space-x-3 space-x-reverse">
+                                <img src="https://via.placeholder.com/40x40/F59E0B/FFFFFF?text=س" alt="سارة أحمد" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-900">سارة أحمد</h4>
+                                        <span class="text-sm text-gray-500">أمس</span>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">يرجى مراجعة متطلبات الأمان قبل المتابعة. أرفقت ملف PDF يحتوي على المعايير المطلوبة.</p>
+                                    <div class="mb-3">
+                                        <div class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-lg p-2">
+                                            <i class="fas fa-file-pdf text-red-500 ml-2"></i>
+                                            <span class="text-sm text-blue-700">security-requirements.pdf</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4 space-x-reverse text-sm text-gray-500">
+                                        <button class="hover:text-blue-600 transition-colors">
+                                            <i class="fas fa-reply ml-1"></i>
+                                            رد
+                                        </button>
+                                        <button class="hover:text-red-600 transition-colors">
+                                            <i class="fas fa-edit ml-1"></i>
+                                            تعديل
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-item p-6">
+                            <div class="flex items-start space-x-3 space-x-reverse">
+                                <img src="https://via.placeholder.com/40x40/8B5CF6/FFFFFF?text=ع" alt="عبد الله حسن" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-900">عبد الله حسن</h4>
+                                        <span class="text-sm text-gray-500">منذ 3 أيام</span>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">بدء العمل على المشروع. تم تحليل المتطلبات وإعداد البيئة التطويرية.</p>
+                                    <div class="flex items-center space-x-4 space-x-reverse text-sm text-gray-500">
+                                        <button class="hover:text-blue-600 transition-colors">
+                                            <i class="fas fa-reply ml-1"></i>
+                                            رد
+                                        </button>
+                                        <button class="hover:text-red-600 transition-colors">
+                                            <i class="fas fa-edit ml-1"></i>
+                                            تعديل
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform -translate-y-full opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle ml-2"></i>
+            <span id="toastMessage">تم إضافة التعليق بنجاح!</span>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+            // عناصر DOM
+            const commentForm   = document.getElementById('commentForm'),
+                  commentText   = document.getElementById('commentText'),
+                  commentsList  = document.getElementById('commentsList'),
+                  commentsCount = document.getElementById('commentsCount'),
+                  toast         = document.getElementById('toast'),
+                  toastMessage  = document.getElementById('toastMessage'),
+                  submitSpinner = document.getElementById('submitSpinner'),
+                  submitText    = document.getElementById('submitText'),
+                  submitIcon    = document.getElementById('submitIcon');
+
+            // تعريف الاتصال SignalR
+            //const connection = new signalR.HubConnectionBuilder()
+            //    .withUrl("/hubs/notifications")
+            //    .build();
+
+            async function startSignalR() {
+                try {
+                    await connection.start();
+                    console.log("✅ SignalR Connected");
+                    connection.invoke("JoinTaskGroup", "@Model.Task.Id");
+                } catch (err) {
+                    console.error("🔁 SignalR Reconnecting...");
+                    setTimeout(startSignalR, 5000);
+                }
+            }
+
+            connection.on("CommentAdded", comment => {
+                prependComment({
+                    authorName: comment.authorName,
+                    content: comment.content,
+                    createdAt: comment.createdAt
+                });
+                updateCommentsCount();
+                showToast("📣 تم إضافة تعليق جديد");
+            });
+
+            connection.on("TaskStatusUpdated", (taskId, status) => {
+                showToast(`📌 تم تحديث حالة المهمة: ${status}`);
+            });
+
+            connection.on("TaskDueDateAlert", (taskId, title) => {
+                showToast(`⏰ تنبيه: المهمة "${title}" تقترب من موعد الانتهاء`);
+            });
+
+            startSignalR();
+        commentForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const text = commentText.value.trim();
+            if (!text) return;
+
+            setLoading(true);
+
+            try {
+                // تعليق استخدام SignalR حالياً
+                // await connection.invoke("AddComment", {
+                //     taskId: @Model.Task.Id,
+                //     content: text
+                // });
+
+                // إعادة تعيين الحقل
+                // commentText.value = '';
+                // تعريف connection كبداية لتجنب ReferenceError حتى لو لم تستخدمه فعليًا
+        const connection = {
+            invoke: () => Promise.reject("SignalR disabled"),
+            on: () => {},
+            start: () => Promise.resolve()
+        };
+
+                // استخدم API مباشرة
+                const resp = await fetch(`/api/Task/@Model.Task.Id/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        commentText: text,
+                        userId: "@Model.CurrentUserId"
+                    })
+                });
+
+                if (!resp.ok) throw new Error(await resp.text());
+
+                const added = await resp.json();
+                prependComment({
+                    authorName: added.userName,
+                    content: added.commentText,
+                    createdAt: added.createdAt
+                });
+
+                commentText.value = '';
+                updateCommentsCount();
+                showToast("✅ تم إضافة التعليق بنجاح");
+            } catch (err2) {
+                console.error(err2);
+                showToast("❌ فشل في إضافة التعليق", "error");
+            } finally {
+                setLoading(false);
+            }
+        });
+
+            // أدوات المساعدة
+            function prependComment(c) {
+                const el = document.createElement('div');
+                el.className = 'comment-item py-4';
+                el.innerHTML = `
+                    <div class="flex items-start space-x-3 space-x-reverse">
+                        <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full" alt="${c.authorName}" />
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-2">
+                                <h4 class="font-semibold text-gray-900">${c.authorName}</h4>
+                                <span class="text-sm text-gray-500">${new Date(c.createdAt).toLocaleString()}</span>
+                            </div>
+                            <p class="text-gray-700">${c.content}</p>
+                        </div>
+                    </div>`;
+                commentsList.prepend(el);
+            }
+
+            function updateCommentsCount() {
+                commentsCount.textContent = `(${commentsList.children.length})`;
+            }
+
+            function setLoading(loading) {
+                if (loading) {
+                    submitSpinner.classList.remove('hidden');
+                    submitText.textContent = 'جاري الإضافة…';
+                    submitIcon.classList.add('hidden');
+                } else {
+                    submitSpinner.classList.add('hidden');
+                    submitText.textContent = 'إضافة تعليق';
+                    submitIcon.classList.remove('hidden');
+                }
+            }
+
+            function showToast(msg, type = 'success') {
+                toastMessage.textContent = msg;
+                toast.classList.toggle('bg-red-500', type === 'error');
+                toast.classList.toggle('bg-green-500', type !== 'error');
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(-100%)';
+                    toast.style.opacity = '0';
+                }, 3000);
+            }
+    </script>
+    @*
+        <script>
+        SignalR connection
+        const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/notifications")
+        .build();
+
+        // Notification state
+        let notifications = [];
+
+        // DOM elements
+        const notificationBtn = document.getElementById('notificationBtn'),
+        notificationBadge = document.getElementById('notificationBadge'),
+        notificationDropdown = document.getElementById('notificationDropdown'),
+        notificationList = document.getElementById('notificationList'),
+        markAllReadBtn = document.getElementById('markAllRead'),
+        commentForm = document.getElementById('commentForm'),
+        commentText = document.getElementById('commentText'),
+        commentsList = document.getElementById('commentsList'),
+        commentsCount = document.getElementById('commentsCount'),
+        toast = document.getElementById('toast'),
+        toastMessage = document.getElementById('toastMessage'),
+        submitSpinner = document.getElementById('submitSpinner'),
+        submitText = document.getElementById('submitText'),
+        submitIcon = document.getElementById('submitIcon');
+
+        // Start SignalR
+        async function start() {
+        try {
+        await connection.start();
+        connection.invoke("JoinTaskGroup", "@Model.Task.Id");
+        console.log("Connected");
+        } catch {
+        setTimeout(start, 5000);
+        }
+        }
+        connection.on("CommentAdded", comment => {
+        prependComment(comment);
+        showToast("تم إضافة تعليق جديد");
+        updateCommentsCount();
+        });
+        connection.on("TaskStatusUpdated", (taskId, status) => {
+        showToast(`تم تحديث حالة المهمة: ${status}`);
+        });
+        connection.on("TaskDueDateAlert", (taskId, title) => {
+        showToast(`تنبيه: المهمة "${title}" تقترب من موعد الانتهاء`);
+        });
+        start();
+
+        // Comment form
+        commentForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!commentText.value.trim()) return;
+        setLoading(true);
+        try {
+        await connection.invoke("AddComment", {
+        taskId: @Model.Task.Id,
+        content: commentText.value.trim()
+        });
+        commentText.value = '';
+        } catch {
+        showToast("فشل في إضافة التعليق", "error");
+        } finally {
+        setLoading(false);
+        }
+        });
+
+        // Helpers
+        function prependComment(c) {
+        const el = document.createElement('div');
+        el.className = 'comment-item py-4';
+        el.innerHTML = `
+        <div class="flex items-start space-x-3 space-x-reverse">
+        <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full" alt="${c.authorName}" />
+        <div class="flex-1">
+        <div class="flex justify-between mb-2">
+        <h4 class="font-semibold text-gray-900">${c.authorName}</h4>
+        <span class="text-sm text-gray-500">${new Date(c.createdAt).toLocaleString()}</span>
+        </div>
+        <p class="text-gray-700">${c.content}</p>
+        </div>
+        </div>`;
+        commentsList.prepend(el);
+        }
+        function updateCommentsCount() {
+        commentsCount.textContent = `(${commentsList.children.length})`;
+        }
+        function setLoading(loading) {
+        if (loading) {
+        submitSpinner.classList.remove('hidden');
+        submitText.textContent = 'جاري الإضافة…';
+        submitIcon.classList.add('hidden');
+        } else {
+        submitSpinner.classList.add('hidden');
+        submitText.textContent = 'إضافة تعليق';
+        submitIcon.classList.remove('hidden');
+        }
+        }
+        function showToast(msg, type = 'success') {
+        toastMessage.textContent = msg;
+        toast.classList.toggle('bg-red-500', type === 'error');
+        toast.classList.toggle('bg-green-500', type !== 'error');
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+        setTimeout(() => {
+        toast.style.transform = 'translateY(-100%)';
+        toast.style.opacity = '0';
+        }, 3000);
+        }
+
+        // Notifications dropdown
+        notificationBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        notificationDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => notificationDropdown.classList.add('hidden'));
+        markAllReadBtn.addEventListener('click', () => {
+        notifications.forEach(n => n.read = true);
+        refreshNotifications();
+        });
+        function addNotification(n) {
+        notifications.unshift(n);
+        refreshNotifications();
+        }
+        function refreshNotifications() {
+        notificationList.innerHTML = '';
+        let unread = 0;
+        notifications.forEach(n => {
+        const div = document.createElement('div');
+        div.className = `p-3 border-b hover:bg-gray-50 cursor-pointer ${!n.read ? 'bg-blue-50' : ''}`;
+        div.innerHTML = `
+        <div class="flex items-start space-x-3 space-x-reverse">
+        <i class="fas ${n.type==='comment'? 'fa-comment' : n.type==='alert'? 'fa-exclamation-triangle' : 'fa-bell'} text-blue-600"></i>
+        <div class="flex-1 min-w-0">
+        <p class="text-sm text-gray-900">${n.message}</p>
+        <p class="text-xs text-gray-500 mt-1">${n.timestamp}</p>
+        </div>
+        ${!n.read? '<div class="w-2 h-2 bg-blue-600 rounded-full"></div>' : ''}
+        </div>`;
+        div.onclick = () => { n.read = true; refreshNotifications(); };
+        notificationList.append(div);
+        if (!n.read) unread++;
+        });
+        if (unread) {
+        notificationBadge.textContent = unread;
+        notificationBadge.classList.remove('hidden');
+        } else {
+        notificationBadge.classList.add('hidden');
+        }
+        }
+        </script>
+    *@
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</body>
+</html>

@@ -1,0 +1,107 @@
+﻿@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
+@{
+    ViewData["Title"] = "قائمة المهام";
+    var role = Context.Session.GetString("UserRole");
+    //var role = "Admin"; // "Manager" أو "User" حسب ما تريد تجربته
+}
+
+            
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold">قائمة المهام</h2>
+        <a asp-action="Create" class="btn-primary">+ مهمة جديدة</a>
+        @*<a asp-action="Notifications" class="btn-secondary">التعليقات والإشعارات</a>*@
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-4 py-2 text-right">العنوان</th>
+                    <th class="px-4 py-2 text-right">الأولوية</th>
+                    <th class="px-4 py-2 text-right">النظام</th>
+                    <th class="px-4 py-2 text-right">الحالة</th>
+                    <th class="px-4 py-2 text-right">الموظف المسؤول</th>
+                    <th class="px-4 py-2 text-right">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in Model)
+                {
+                    <tr class="border-b">
+                        <td class="px-4 py-2 text-right">@task.Title</td>
+                        <td class="px-4 py-2 text-right">@task.Priority</td>
+                        <td class="px-4 py-2 text-right">@task.System</td>
+                        <td class="px-4 py-2 text-right">
+                            @if (task.Status == "Overdue")
+                            {
+                                <span class="text-red-600 font-semibold">@task.Status</span>
+                            }
+                            else if (task.Status == "Completed")
+                            {
+                                <span class="text-green-600 font-semibold">@task.Status</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-700">@task.Status</span>
+                            }
+                        </td>
+                        <td class="px-4 py-2 text-right">@task.AssignedToName</td>
+                        <td class="px-4 py-2 text-right space-x-2">
+                            <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-500 hover:underline">تعديل</a>
+                            <a asp-action="Details" asp-route-id="@task.Id" class="text-indigo-600 hover:underline">تفاصيل</a>
+                            @if (role == "Manager" || role == "Admin")
+                            {
+                               <form asp-action="Delete" asp-route-id="@task.Id" method="post" class="inline-block" onsubmit="return confirmDelete(this, '@task.Title');">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="text-red-600 hover:text-red-800 mx-2">حذف</button>
+</form>
+                            }
+                        </td>
+                        @*<td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+    <a asp-action="Edit" asp-route-id="@task.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
+    @if (role == "Manager" || role == "Admin")
+    {
+        <a href="#" class="text-red-600 hover:text-red-800 mx-2"
+           onclick="confirmDelete(@task.Id, '@task.Title')">حذف</a>
+    }
+</td>
+*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@*<form method="post">
+    @Html.AntiForgeryToken()
+</form>*@
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDelete(form, taskTitle) {
+        event.preventDefault(); // نمنع الإرسال
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: `سيتم حذف المهمة (${taskTitle}) نهائيًا!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit(); // إرسال النموذج بعد التأكيد
+            }
+        });
+
+        return false;
+    }
+    
+
+    function getAntiForgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+</script>
+ <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />

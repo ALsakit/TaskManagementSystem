@@ -502,10 +502,7 @@ namespace TaskManagementSystem.MVC.Controllers
         }
 
         // GET: /Task/Notifications
-        public IActionResult Notifications()
-        {
-            return View();
-        }
+        
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
