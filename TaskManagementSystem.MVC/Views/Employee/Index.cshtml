@@ -1,72 +1,388 @@
-﻿
-@model IEnumerable<TaskManagementSystem.MVC.Models.EmployeeViewModel>
+﻿@model IEnumerable<TaskManagementSystem.MVC.Models.EmployeeViewModel>
 @{
     ViewData["Title"] = "قائمة الموظفين";
 }
-<div class="mb-8">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-semibold text-gray-700">@ViewData["Title"]</h3>
-        <a asp-action="Create" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">+ إضافة موظف جديد</a>
-    </div>
 
-    @if (ViewData["Error"] != null)
-    {
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            @ViewData["Error"]
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        @ViewData["Title"]
+                    </h1>
+                    <p class="text-gray-600 mt-2">إدارة وتنظيم بيانات الموظفين</p>
+                </div>
+                <button onclick="openAddModal()" 
+                        class="group relative px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300">
+                    <i class="fas fa-plus mr-2"></i>
+                    إضافة موظف جديد
+                    <div class="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+            </div>
         </div>
-    }
 
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">البريد الإلكتروني</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الدور</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">إجراءات</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @foreach (var emp in Model)
-                {
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Id</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Name</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Email</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-700">@emp.Role</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            @*<a asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>*@
-                           
+        <!-- Error Message -->
+        @if (ViewData["Error"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-xl mb-6 shadow-md">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl mr-3"></i>
+                    <p class="text-red-800 font-medium">@ViewData["Error"]</p>
+                </div>
+            </div>
+        }
 
-                            <a  asp-action="Edit" asp-route-id="@emp.Id" class="text-blue-600 hover:text-blue-800 mx-2">تعديل</a>
-                            @*<a asp-action="Delete" asp-route-id="@emp.Id" class="text-red-600 hover:text-red-800 mx-2">حذف</a>*@
-                            <a href="#" class="text-red-600 hover:text-red-800 mx-2" onclick="confirmDelete(@emp.Id, '@emp.Name')">حذف</a>
+        <!-- Success Message -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-xl mb-6 shadow-md">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                    <p class="text-green-800 font-medium">@TempData["SuccessMessage"]</p>
+                </div>
+            </div>
+        }
 
+        <!-- Employees Table -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full ">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                <i class="fas fa-hashtag mr-2"></i>المعرف
+                            </th>
+                            <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                <i class="fas fa-user mr-2"></i>الاسم
+                            </th>
+                            <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                <i class="fas fa-envelope mr-2"></i>البريد الإلكتروني
+                            </th>
+                            <th class="px-8 py-6 text-right text-sm font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                <i class="fas fa-user-tag mr-2"></i>الدور
+                            </th>
+                            <th class="px-8 py-6 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                <i class="fas fa-cogs mr-2"></i>الإجراءات
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                        @foreach (var emp in Model)
+                        {
+                            <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 group">
+                                <td class="px-8 py-6 whitespace-nowrap">
+                                    <div class="flex items-center justify-start">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                                            @emp.Id
+                                        </span>
+                                    </div>
+                                </td>
+                                @*<td class="px-8 py-6 whitespace-nowrap text-start">
+                                    <div class="flex items-center justify-end">
+                                        <div class="flex-shrink-0 h-10 w-10 ml-4">
+                                            <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
+                                                @emp.Name.Substring(0, 1)
+                                            </div>
 
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                                        </div>
+                                        <div class="text-sm  text-left font-semibold text-gray-900">@emp.Name</div>
+                                    </div>
+                                </td>*@
+                                <td class="px-8 py-6 whitespace-nowrap text-left">
+  <div class="flex  items-center">
+    <!-- الحرف الأول -->
+    <div class="flex-shrink-0 h-10 w-10 mx-4">
+      <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 
+                  flex items-center justify-center text-white font-bold">
+        @emp.Name.Substring(0, 1)
+      </div>
+    </div>
+    <!-- الاسم -->
+    <div class="text-sm font-semibold text-gray-900">
+      @emp.Name
+    </div>
+  </div>
+</td>
+
+                                <td class="px-8 py-6 whitespace-nowrap text-right">
+                                    <div class="text-sm  text-gray-900 font-medium">@emp.Email</div>
+                                </td>
+                                <td class="px-8 py-6 whitespace-nowrap text-right">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        @emp.Role
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 whitespace-nowrap text-center">
+                                    <div class="flex items-center justify-center space-x-3 space-x-reverse">
+                                        <button onclick="openEditModal(@emp.Id, '@emp.Name', '@emp.Email', '@emp.Role')" 
+                                                class="group relative p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transform hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <i class="fas fa-edit"></i>
+                                            <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                تعديل
+                                            </div>
+                                        </button>
+                                        <button onclick="confirmDelete(@emp.Id, '@emp.Name')" 
+                                                class="group relative p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transform hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                            <i class="fas fa-trash"></i>
+                                            <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                حذف
+                                            </div>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-<form method="post">
+
+<!-- Add Employee Modal -->
+<div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform scale-95 opacity-0 transition-all duration-300" id="addModalContent">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-user-plus mr-3"></i>
+                    إضافة موظف جديد
+                </h3>
+                <button onclick="closeAddModal()" class="text-white hover:text-gray-200 transition-colors duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form asp-action="Create" method="post" class="p-6 space-y-6">
+            @Html.AntiForgeryToken()
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2 text-gray-500"></i>الاسم
+                    </label>
+                    <input name="Name" type="text" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" 
+                           placeholder="أدخل اسم الموظف" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2 text-gray-500"></i>البريد الإلكتروني
+                    </label>
+                    <input name="Email" type="email" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" 
+                           placeholder="example@mail.com" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-gray-500"></i>كلمة المرور
+                    </label>
+                    <input name="Password" type="password" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" 
+                           placeholder="أدخل كلمة المرور" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user-tag mr-2 text-gray-500"></i>الدور
+                    </label>
+                    <select name="Role" required 
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                        <option value="">-- اختر دوراً --</option>
+                        <option value="Admin">مدير</option>
+                        <option value="Manager">مشرف</option>
+                        <option value="Employee">موظف</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-4 space-x-reverse pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeAddModal()" 
+                        class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors duration-200 font-medium">
+                    إلغاء
+                </button>
+                <button type="submit" 
+                        class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl">
+                    <i class="fas fa-save mr-2"></i>حفظ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform scale-95 opacity-0 transition-all duration-300" id="editModalContent">
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    تعديل بيانات الموظف
+                </h3>
+                <button onclick="closeEditModal()" class="text-white hover:text-gray-200 transition-colors duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form id="editForm" method="post" class="p-6 space-y-6">
+            @Html.AntiForgeryToken()
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2 text-gray-500"></i>الاسم
+                    </label>
+                    <input id="editName" name="Name" type="text" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" 
+                           placeholder="أدخل اسم الموظف" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2 text-gray-500"></i>البريد الإلكتروني
+                    </label>
+                    <input id="editEmail" name="Email" type="email" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" 
+                           placeholder="example@mail.com" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user-tag mr-2 text-gray-500"></i>الدور
+                    </label>
+                    <select id="editRole" name="Role" required 
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                        <option value="">-- اختر دوراً --</option>
+                        <option value="Admin">مدير</option>
+                        <option value="Manager">مشرف</option>
+                        <option value="Employee">موظف</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-4 space-x-reverse pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeEditModal()" 
+                        class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors duration-200 font-medium">
+                    إلغاء
+                </button>
+                <button type="submit" 
+                        class="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl">
+                    <i class="fas fa-save mr-2"></i>حفظ التعديلات
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Anti-forgery token form for delete operations -->
+<form method="post" style="display: none;">
     @Html.AntiForgeryToken()
 </form>
 
+<!-- Scripts -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+    // Add Modal Functions
+    function openAddModal() {
+        const modal = document.getElementById('addModal');
+        const content = document.getElementById('addModalContent');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeAddModal() {
+        const modal = document.getElementById('addModal');
+        const content = document.getElementById('addModalContent');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Edit Modal Functions
+    function openEditModal(id, name, email, role) {
+        const modal = document.getElementById('editModal');
+        const content = document.getElementById('editModalContent');
+        const form = document.getElementById('editForm');
+        
+        // Set form action
+        form.action = `/Employee/Edit/${id}`;
+        
+        // Fill form fields
+        document.getElementById('editName').value = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        const content = document.getElementById('editModalContent');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Delete confirmation
     function confirmDelete(userId, userName) {
         Swal.fire({
             title: 'هل أنت متأكد؟',
             text: `سيتم حذف الموظف (${userName}) نهائيًا!`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'نعم، احذف',
-            cancelButtonText: 'إلغاء'
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-trash mr-2"></i>نعم، احذف',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i>إلغاء',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-2xl shadow-2xl',
+                title: 'text-gray-800 font-bold',
+                content: 'text-gray-600',
+                confirmButton: 'rounded-xl font-semibold',
+                cancelButton: 'rounded-xl font-semibold'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'جاري الحذف...',
+                    text: 'يرجى الانتظار',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl'
+                    },
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 fetch(`/Employee/DeleteConfirmed/${userId}`, {
                     method: 'POST',
                     headers: {
@@ -75,11 +391,52 @@
                 })
                 .then(res => {
                     if (res.ok) {
-                        Swal.fire('تم الحذف!', 'تم حذف الموظف بنجاح.', 'success')
-                            .then(() => location.reload());
+                        Swal.fire({
+                            title: 'تم الحذف!',
+                            text: 'تم حذف الموظف بنجاح.',
+                            icon: 'success',
+                            confirmButtonColor: '#10b981',
+                            confirmButtonText: '<i class="fas fa-check mr-2"></i>موافق',
+                            background: '#ffffff',
+                            customClass: {
+                                popup: 'rounded-2xl shadow-2xl',
+                                title: 'text-gray-800 font-bold',
+                                content: 'text-gray-600',
+                                confirmButton: 'rounded-xl font-semibold'
+                            }
+                        }).then(() => location.reload());
                     } else {
-                        Swal.fire('خطأ!', 'فشل حذف الموظف.', 'error');
+                        Swal.fire({
+                            title: 'خطأ!',
+                            text: 'فشل حذف الموظف.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444',
+                            confirmButtonText: '<i class="fas fa-times mr-2"></i>موافق',
+                            background: '#ffffff',
+                            customClass: {
+                                popup: 'rounded-2xl shadow-2xl',
+                                title: 'text-gray-800 font-bold',
+                                content: 'text-gray-600',
+                                confirmButton: 'rounded-xl font-semibold'
+                            }
+                        });
                     }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: 'حدث خطأ أثناء الحذف.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: '<i class="fas fa-times mr-2"></i>موافق',
+                        background: '#ffffff',
+                        customClass: {
+                            popup: 'rounded-2xl shadow-2xl',
+                            title: 'text-gray-800 font-bold',
+                            content: 'text-gray-600',
+                            confirmButton: 'rounded-xl font-semibold'
+                        }
+                    });
                 });
             }
         });
@@ -88,5 +445,37 @@
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
+
+    // Close modals when clicking outside
+    document.getElementById('addModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddModal();
+        }
+    });
+
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditModal();
+        }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddModal();
+            closeEditModal();
+        }
+    });
+
+    // Auto-hide success/error messages
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50');
+        alerts.forEach(alert => {
+            alert.style.transition = 'all 0.5s ease-out';
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-20px)';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
 </script>
- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.API.Data;
+using TaskManagementSystem.API.Hubs;
 using TaskManagementSystem.API.Models;
 
 namespace TaskManagementSystem.API.Controllers
@@ -14,25 +16,28 @@ namespace TaskManagementSystem.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<TaskController> _logger;
-        public TaskController(AppDbContext context, ILogger<TaskController> logger)
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public TaskController(AppDbContext context, ILogger<TaskController> logger, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
-        public class TaskDto
-        {
-            public int Id { get; set; }
-            public string Title { get; set; }
-            public string Description { get; set; }
-            public string Priority { get; set; }
-            public string System { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public DateTime? DueDate { get; set; }
-            public string Status { get; set; }
-            public int AssignedToUserId { get; set; }
-            public string AssignedToName { get; set; }
-        }
+        //public class TaskDto
+        //{
+        //    public int Id { get; set; }
+        //    public string Title { get; set; }
+        //    public string Description { get; set; }
+        //    public string Priority { get; set; }
+        //    public string System { get; set; }
+        //    public DateTime CreatedAt { get; set; }
+        //    public DateTime? DueDate { get; set; }
+        //    public string Status { get; set; }
+        //    public int AssignedToUserId { get; set; }
+        //    public string AssignedToName { get; set; }
+        //}
 
 
         [HttpGet]
@@ -101,6 +106,23 @@ namespace TaskManagementSystem.API.Controllers
 
         //    return taskItem;
         //}
+
+        public class TaskDto
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Description { get; set; }
+            public string Priority { get; set; }
+            public string System { get; set; }
+            public DateTime CreatedAt { get; set; }
+
+            public DateTime? DueDate { get; set; }
+            public string Status { get; set; }
+            public int AssignedToUserId { get; set; }
+            public string AssignedToName { get; set; }
+        }
+
+
         // 1. أضف DTO جديد لقبول بيانات إنشاء المهمة فقط
         public class CreateTaskModel
         {
@@ -111,10 +133,240 @@ namespace TaskManagementSystem.API.Controllers
             public DateTime? DueDate { get; set; }
             public int AssignedToUserId { get; set; }
         }
-
-        // 2. عدّل الميثود POST في TaskController لاستخدام CreateTaskModel بدلاً من TaskItem
+        // POST: api/Tasks
         [HttpPost]
-        public async Task<ActionResult<TaskItem>> CreateTask([FromBody] CreateTaskModel model)
+        public async Task<ActionResult<TaskDto>> CreateTask([FromBody] CreateTaskModel model)
+        {
+            _logger.LogInformation("CreateTask called with: {@model}", model);
+
+            // التحقق من البيانات الأساسية
+            if (string.IsNullOrWhiteSpace(model.Title))
+                return BadRequest("Title is required.");
+            // يمكن إضافة تحقق ModelState آخر حسب الحاجة
+
+            // تحقق أن المستخدم المُعيّن موجود
+            var assignedUser = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == model.AssignedToUserId);
+            if (assignedUser == null)
+                return BadRequest($"AssignedToUserId {model.AssignedToUserId} not found.");
+
+            // إنشاء الكيان
+            var taskItem = new TaskItem
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Pending"
+            };
+
+            _context.TaskItems.Add(taskItem);
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Task saved with Id {Id}", taskItem.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Task");
+                return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
+            }
+
+            // إعداد DTO للإرجاع
+            var taskDto = new TaskDto
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                Priority = taskItem.Priority,
+                System = taskItem.System,
+                DueDate = taskItem.DueDate,
+                Status = taskItem.Status,
+                CreatedAt = taskItem.CreatedAt,
+                AssignedToUserId = taskItem.AssignedToUserId,
+                AssignedToName = assignedUser.Name
+            };
+
+            // إنشاء إشعار للمستخدم المعين
+            try
+            {
+                // مثال: نرسل إشعارًا للمستخدم المعين ومجموعة الإداريين/المدراء
+                // أولاً: لمستخدم المعين
+                var notifForAssigned = new Notification
+                {
+                    Title = $"مهمة جديدة: {taskItem.Title}",
+                    Content = $"تم تعيين مهمة جديدة لك: {taskItem.Title}",
+                    UserId = assignedUser.Id,
+                    TaskId = taskItem.Id,
+                    Type = NotificationType.TaskAssigned,
+                    CreatedDate = DateTime.UtcNow
+                };
+                _context.Notifications.Add(notifForAssigned);
+
+                // ثم لمجموعة المدراء والـAdmins
+                var adminsAndManagers = await _context.Users
+                    .Where(u => u.Role == "Manager" || u.Role == "Admin")
+                    .ToListAsync();
+
+                foreach (var recipient in adminsAndManagers)
+                {
+                    var notif = new Notification
+                    {
+                        Title = $"مهمة جديدة: {taskItem.Title}",
+                        Content = $"تم إنشاء مهمة جديدة بعنوان '{taskItem.Title}'",
+                        UserId = recipient.Id,
+                        TaskId = taskItem.Id,
+                        Type = NotificationType.TaskAssigned,
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(notif);
+                    await _context.SaveChangesAsync();
+
+                    // إرسال فوري عبر SignalR إلى المجموعة المقابلة للمستخدم
+                    // نفترض أن الـHub يربط كل مستخدم إلى مجموعة باسمه أو بمعرفه
+                    await _hubContext.Clients.Group(recipient.Id.ToString())
+                        .SendAsync("ReceiveNotification", new
+                        {
+                            userId = recipient.Id,
+                            title = notif.Title,
+                            content = notif.Content,
+                            createdAt = notif.CreatedDate.ToString("g")
+                        });
+                }
+
+                // أيضاً إرسال إشعار للمستخدم المعين عبر SignalR
+                await _hubContext.Clients.Group(assignedUser.Id.ToString())
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        userId = assignedUser.Id,
+                        title = notifForAssigned.Title,
+                        content = notifForAssigned.Content,
+                        createdAt = notifForAssigned.CreatedDate.ToString("g")
+                    });
+
+                // حفظ جميع الإشعارات في قاعدة البيانات
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating or sending notifications");
+                // لا نوقف العملية الأساسية لإرجاع الـTaskDto، بل نسجل الخطأ
+            }
+
+            // إرجاع CREATED مع DTO لتجنّب دورات المراجع
+            return CreatedAtAction(nameof(GetTaskItem), new { id = taskDto.Id }, taskDto);
+        }
+        //[HttpPost]
+        //[Route("CreateTask")]
+        public async Task<ActionResult<TaskItem>> CreateTask111([FromBody] CreateTaskModel model)
+        {
+            // 1) أنشئ المهمة
+            var taskItem = new TaskItem
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Priority = model.Priority,
+                System = model.System,
+                DueDate = model.DueDate,
+                AssignedToUserId = model.AssignedToUserId,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Pending"
+            };
+
+            _context.TaskItems.Add(taskItem);
+
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Task saved with Id {Id}", taskItem.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Task");
+                return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
+            }
+
+            // 2) جهز بيانات المستخدم الحالي لإدراج في المحتوى إن لزم
+            //    على سبيل المثال: اسم المستخدم الحالي:
+            string currentUserName = User?.Identity?.Name ?? "Unknown";
+            //    أو إذا تستخرج من JWT:
+            //    var currentUserId = ...; ثم تجلب الـUser من القاعدة إذا احتجت اسمه.
+
+            // 3) استعلام المهمة المحفوظة مع الـAssignedTo (مثلاً لجلب العنوان أو غيره)
+            var taskWithNav = await _context.TaskItems
+                .Include(t => t.AssignedTo)
+                .FirstOrDefaultAsync(t => t.Id == taskItem.Id);
+            if (taskWithNav == null)
+            {
+                // نادر الحدوث بعد الحفظ
+                _logger.LogWarning("Task not found after save: Id {Id}", taskItem.Id);
+            }
+
+            // 4) جهز قائمة المستلمين للإشعار:
+            //    هنا نفترض: الأدوار Admin و Manager يجب أن تُخطر
+            var adminsAndManagers = await _context.Users
+                .Where(u => u.Role == "Manager" || u.Role == "Admin")
+                .ToListAsync();
+
+            // 5) إنشاء إشعارات لكل مستلم
+            var notifications = new List<Notification>();
+            foreach (var recipient in adminsAndManagers)
+            {
+                var notif = new Notification
+                {
+                    Title = $"تم إنشاء مهمة جديدة: {taskItem.Title}",
+                    Content = $"بواسطة {currentUserName}",
+                    UserId = recipient.Id,
+                    TaskId = taskItem.Id,
+                    Type = NotificationType.TaskAssigned,
+                    CreatedDate = DateTime.UtcNow,
+                    IsRead = false
+                };
+                notifications.Add(notif);
+                _context.Notifications.Add(notif);
+            }
+
+            // 6) حفظ الإشعارات في قاعدة البيانات
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving notifications");
+                // نستمر رغم الخطأ في الحفظ، لكن نعلم السجل
+            }
+
+            // 7) إرسال الإشعارات عبر SignalR
+            //    نفترض أنك تستخدم مجموعات تشترك باسم المستخدم أو الـUserId كمجموعة.
+            foreach (var recipient in adminsAndManagers)
+            {
+                var notifToSend = notifications
+                    .FirstOrDefault(n => n.UserId == recipient.Id && n.TaskId == taskItem.Id);
+                if (notifToSend != null)
+                {
+                    // SendAsync: method name "ReceiveNotification" متفق عليه في الـJS
+                    await _hubContext.Clients.Group(recipient.Id.ToString())
+                        .SendAsync("ReceiveNotification", new
+                        {
+                            userId = recipient.Id,
+                            title = notifToSend.Title,
+                            content = notifToSend.Content,
+                            createdAt = notifToSend.CreatedDate.ToString("g")
+                        });
+                }
+            }
+
+            // 8) إرجاع نتيجة الإنشاء
+            return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
+        }
+        // 2. عدّل الميثود POST في TaskController لاستخدام CreateTaskModel بدلاً من TaskItem
+        //[HttpPost]
+        public async Task<ActionResult<TaskItem>> CreateTask1([FromBody] CreateTaskModel model)
         {
             _logger.LogInformation("CreateTask called with: {@model}", model);
 
@@ -141,7 +393,9 @@ namespace TaskManagementSystem.API.Controllers
                 _logger.LogError(ex, "Error saving Task");
                 return BadRequest("خطأ في حفظ المهمة: " + ex.Message);
             }
+            //
 
+            //
             return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, taskItem);
         }
 
@@ -333,6 +587,7 @@ namespace TaskManagementSystem.API.Controllers
             return Ok(tasks);
         }
         // GET: api/Task/{id}/comments
+       
         [HttpGet("{id}/comments")]
         [AllowAnonymous] // أو حسب صلاحياتك
         public async Task<ActionResult<IEnumerable<TaskCommentDto>>> GetComments(int id)
@@ -356,44 +611,115 @@ namespace TaskManagementSystem.API.Controllers
         // DTO لاستقبال بيانات التعليق الجديد
         public class CreateCommentModel
         {
+            public int TaskId { get; set; }
             public string CommentText { get; set; }
             public int UserId { get; set; }
         }
 
         // POST: api/Task/{id}/comments
-        [HttpPost("{id}/comments")]
+        [HttpPost("AddComment")]
         [AllowAnonymous]  // أو حسب صلاحياتك
-        public async Task<ActionResult<TaskCommentDto>> AddComment(int id, [FromBody] CreateCommentModel model)
+        public async Task<IActionResult> AddComment([FromBody] CreateCommentModel request)
         {
-            // 1) تأكد وجود المهمة
-            var task = await _context.TaskItems.FindAsync(id);
-            if (task == null)
-                return NotFound($"المهمة {id} غير موجودة.");
+            if (string.IsNullOrWhiteSpace(request.CommentText))
+                return BadRequest("نص التعليق فارغ.");
 
-            // 2) أنشئ كيان التعليق
+            var user = await _context.Users.FindAsync(request.UserId);
+            if (user == null)
+                return BadRequest("المستخدم غير موجود.");
+
             var comment = new TaskComment
             {
-                TaskItemId = id,
-                CommentText = model.CommentText,
+                TaskItemId = request.TaskId,
+                CommentText = request.CommentText.Trim(),
                 CreatedAt = DateTime.UtcNow,
-                UserId = model.UserId
+                UserId = request.UserId
             };
+
             _context.TaskComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // 3) حضّر الـ DTO للرد
-            var dto = new TaskCommentDto
-            {
-                Id = comment.Id,
-                CommentText = comment.CommentText,
-                CreatedAt = comment.CreatedAt,
-                TaskItemId = comment.TaskItemId,
-                UserId = comment.UserId,
-                UserName = (await _context.Users.FindAsync(comment.UserId))?.Name
-            };
+            //// الخاصة بالاشعارات
+            //// بعد إضافة التعليق بنجاح
+            //var task = await _context.TaskItems
+            //    .Include(t => t.AssignedTo)
+            //    .FirstOrDefaultAsync(t => t.Id == request.TaskId);
 
-            return CreatedAtAction(nameof(GetComments), new { id }, dto);
+            //var adminsAndManagers = await _context.Users
+            //    .Where(u => u.Role == "Manager" || u.Role == "Admin")
+            //    .ToListAsync();
+
+            //foreach (var recipient in adminsAndManagers)
+            //{
+            //    var notification = new Notification
+            //    {
+            //        Title = $"تعليق جديد على المهمة: {task.Title}",
+            //        Content = $"قام {user.Name} بإضافة تعليق: {request.CommentText}",
+            //        UserId = recipient.Id,
+            //        TaskId = task.Id,
+            //        Type = NotificationType.TaskComment
+            //    };
+            //    _context.Notifications.Add(notification);
+            //}
+            //await _context.SaveChangesAsync();
+
+            //await _hubContext.Clients.All.SendAsync("ReceiveNotification", new
+            //{
+            //    title = notification.Title,
+            //    content = notification.Content,
+            //    createdAt = notification.CreatedDate.ToString("g")
+            //});
+
+
+
+
+            // بعد حفظ التعليق بنجاح مثلاً
+            var task = await _context.TaskItems
+                .Include(t => t.AssignedTo)
+                .FirstOrDefaultAsync(t => t.Id == request.TaskId);
+
+            var adminsAndManagers = await _context.Users
+                .Where(u => u.Role == "Manager" || u.Role == "Admin")
+                .ToListAsync();
+
+            foreach (var recipient in adminsAndManagers)
+            {
+                var notification = new Notification
+                {
+                    Title = $"تعليق جديد على المهمة: {task.Title}",
+                    Content = $"قام {user.Name} بإضافة تعليق: {request.CommentText}",
+                    UserId = recipient.Id,
+                    TaskId = task.Id,
+                    Type = NotificationType.TaskComment
+                };
+
+                _context.Notifications.Add(notification);
+
+                // إرسال الإشعار مباشرةً بعد إنشائه User
+                await _hubContext.Clients.Group(recipient.Id.ToString())
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        userId = recipient.Id,
+                        title = notification.Title,
+                        content = notification.Content,
+                        createdAt = notification.CreatedDate.ToString("g")
+                    });
+            }
+
+            // حفظ كل الإشعارات في النهاية
+            await _context.SaveChangesAsync();
+            // الخاصة بالاشعارات
+
+
+            return Ok(new
+            {
+                id = comment.Id,
+                commentText = comment.CommentText,
+                createdAt = comment.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
+                userName = user.Name
+            });
         }
+
 
 
     }

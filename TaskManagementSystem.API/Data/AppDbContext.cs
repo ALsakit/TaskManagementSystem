@@ -10,6 +10,7 @@ namespace TaskManagementSystem.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,19 @@ namespace TaskManagementSystem.API.Data
                 .WithMany(u => u.Tasks)
                 .HasForeignKey(ti => ti.AssignedToUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // إصلاح علاقة Notification مع TaskItem
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Task)
+                .WithMany(t => t.Notifications)
+                .HasForeignKey(n => n.TaskId)
+                .OnDelete(DeleteBehavior.SetNull); // ✅ يؤكد أن TaskId يمكن تعيينه إلى null
+
+            // إصلاح علاقة Notification مع User
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany(u => u.Notifications)
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
 

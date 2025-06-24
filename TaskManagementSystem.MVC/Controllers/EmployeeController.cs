@@ -88,6 +88,60 @@ namespace TaskManagementSystem.MVC.Controllers
             return View(vm);
         }
 
+        // POST: إنشاء موظف جديد (AJAX)
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create([FromForm] EmployeeCreateViewModel model)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("استلام طلب إنشاء موظف جديد: {EmployeeData}", JsonConvert.SerializeObject(model));
+
+        //        if (!ModelState.IsValid)
+        //        {
+        //            var errors = ModelState
+        //                .Where(x => x.Value.Errors.Count > 0)
+        //                .ToDictionary(
+        //                    kvp => kvp.Key,
+        //                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        //                );
+
+        //            _logger.LogWarning("بيانات غير صحيحة في إنشاء الموظف: {Errors}", JsonConvert.SerializeObject(errors));
+        //            return Json(new { success = false, errors = errors });
+        //        }
+
+        //        var client = _apiClientFactory.CreateClient();
+        //        var toSend = new
+        //        {
+        //            Name = model.Name,
+        //            Email = model.Email,
+        //            Password = model.Password,
+        //            Role = model.Role
+        //        };
+
+        //        var json = JsonConvert.SerializeObject(toSend);
+        //        _logger.LogInformation("إرسال بيانات الموظف إلى API: {ApiData}", json);
+
+        //        var response = await client.PostAsync("User", new StringContent(json, Encoding.UTF8, "application/json"));
+
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            _logger.LogInformation("تم إنشاء الموظف بنجاح");
+        //            return Json(new { success = true, message = "تم إضافة الموظف بنجاح" });
+        //        }
+        //        else
+        //        {
+        //            var errorBody = await response.Content.ReadAsStringAsync();
+        //            _logger.LogError("فشل في إنشاء الموظف. Status Code: {StatusCode}, Response: {Response}", response.StatusCode, errorBody);
+        //            return Json(new { success = false, message = $"فشل في إضافة الموظف: {errorBody}" });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "خطأ في إنشاء الموظف");
+        //        return Json(new { success = false, message = "حدث خطأ أثناء إضافة الموظف" });
+        //    }
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeCreateViewModel model)
@@ -115,31 +169,6 @@ namespace TaskManagementSystem.MVC.Controllers
             return RedirectToAction("Index");
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Edit(int id)
-        //{
-        //    var client = _apiClientFactory.CreateClient();
-        //    var resp = await client.GetAsync($"User/{id}");
-
-        //    if (!resp.IsSuccessStatusCode)
-        //    {
-        //        ViewData["Error"] = "فشل في جلب بيانات الموظف.";
-        //        return RedirectToAction("Index");
-        //    }
-
-        //    var json = await resp.Content.ReadAsStringAsync();
-        //    var emp = JsonConvert.DeserializeObject<EmployeeViewModel>(json);
-
-        //    var model = new EmployeeEditViewModel
-        //    {
-        //        Id = emp.Id,
-        //        Name = emp.Name,
-        //        Email = emp.Email,
-        //        Role = emp.Role
-        //    };
-
-        //    return View(model);
-        //}
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -222,6 +251,60 @@ namespace TaskManagementSystem.MVC.Controllers
             TempData["SuccessMessage"] = "تم تعديل الموظف بنجاح.";
             return RedirectToAction("Index");
         }
+        // POST: تعديل موظف (AJAX)
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, [FromForm] EmployeeEditViewModel model)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("استلام طلب تعديل الموظف: {EmployeeId}, البيانات: {EmployeeData}", id, JsonConvert.SerializeObject(model));
+
+        //        if (!ModelState.IsValid)
+        //        {
+        //            var errors = ModelState
+        //                .Where(x => x.Value.Errors.Count > 0)
+        //                .ToDictionary(
+        //                    kvp => kvp.Key,
+        //                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        //                );
+
+        //            _logger.LogWarning("بيانات غير صحيحة في تعديل الموظف: {Errors}", JsonConvert.SerializeObject(errors));
+        //            return Json(new { success = false, errors = errors });
+        //        }
+
+        //        var client = _apiClientFactory.CreateClient();
+        //        var toSend = new
+        //        {
+        //            Name = model.Name,
+        //            Email = model.Email,
+        //            Role = model.Role
+        //        };
+
+        //        var json = JsonConvert.SerializeObject(toSend);
+        //        _logger.LogInformation("إرسال بيانات التعديل إلى API: {ApiData}", json);
+
+        //        var response = await client.PutAsync($"User/{id}", new StringContent(json, Encoding.UTF8, "application/json"));
+
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            _logger.LogInformation("تم تعديل الموظف بنجاح");
+        //            return Json(new { success = true, message = "تم تعديل الموظف بنجاح" });
+        //        }
+        //        else
+        //        {
+        //            var errorBody = await response.Content.ReadAsStringAsync();
+        //            _logger.LogError("فشل في تعديل الموظف. Status Code: {StatusCode}, Response: {Response}", response.StatusCode, errorBody);
+        //            return Json(new { success = false, message = $"فشل في تعديل الموظف: {errorBody}" });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "خطأ في تعديل الموظف");
+        //        return Json(new { success = false, message = "حدث خطأ أثناء تعديل الموظف" });
+        //    }
+        //}
+
 
         [HttpGet]
         public async Task<IActionResult> Delete(int id)

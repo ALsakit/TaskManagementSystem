@@ -17,5 +17,6 @@ namespace TaskManagementSystem.API.Models
         public string Role { get; set; }       // "Manager", "Support", "Admin"
         public ICollection<TaskItem> Tasks { get; set; }
         public ICollection<TaskComment> Comments { get; set; }
+        public ICollection<Notification> Notifications { get; set; }
     }
 }

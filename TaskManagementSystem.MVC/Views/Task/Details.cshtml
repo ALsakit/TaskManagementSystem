@@ -4,374 +4,6 @@
     ViewData["Title"] = "تفاصيل المهمة";
 }
 
-<!-- CSS مخصص للواجهة المحسنة -->
-<style>
-    .task-details-container {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        min-height: 100vh;
-        padding: 2rem 0;
-    }
-
-    .task-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .task-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-    }
-
-    .task-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .comments-section {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-        overflow: hidden;
-    }
-
-    .comments-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.5rem 2rem;
-        position: relative;
-    }
-
-    .comments-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: float 6s ease-in-out infinite;
-    }
-
-   
-    .comment-form-section {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        padding: 2rem;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .comment-textarea {
-        width: 100%;
-        padding: 1rem 1.5rem;
-        border: 2px solid #e2e8f0;
-        border-radius: 16px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        background: white;
-        resize: none;
-        min-height: 120px;
-    }
-
-    .comment-textarea:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        transform: scale(1.02);
-    }
-
-    .submit-btn {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 16px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-    }
-
-    .submit-btn:hover {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
-    }
-
-    .submit-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .comment-item {
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid #f1f5f9;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .comment-item:hover {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        transform: translateX(-5px);
-    }
-
-    .comment-item:last-child {
-        border-bottom: none;
-    }
-
-    .comment-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 18px;
-        margin-left: 1rem;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    .comment-content {
-        flex: 1;
-        background: white;
-        padding: 1rem 1.5rem;
-        border-radius: 16px;
-        border: 1px solid #e2e8f0;
-        position: relative;
-    }
-
-    .comment-content::before {
-        content: '';
-        position: absolute;
-        right: -8px;
-        top: 20px;
-        width: 0;
-        height: 0;
-        border-left: 8px solid white;
-        border-top: 8px solid transparent;
-        border-bottom: 8px solid transparent;
-    }
-
-    .comment-meta {
-        display: flex;
-        justify-content: between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .comment-author {
-        font-weight: 600;
-        color: #1f2937;
-        font-size: 16px;
-    }
-
-    .comment-time {
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    .comment-text {
-        color: #374151;
-        line-height: 1.6;
-        margin-bottom: 1rem;
-    }
-
-    .comment-actions {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .comment-action-btn {
-        color: #6b7280;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 8px;
-    }
-
-    .comment-action-btn:hover {
-        color: #3b82f6;
-        background: #f1f5f9;
-    }
-
-    .status-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .status-completed {
-        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-        color: #065f46;
-        border: 1px solid #10b981;
-    }
-
-    .status-overdue {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        color: #991b1b;
-        border: 1px solid #ef4444;
-    }
-
-    .status-pending {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        color: #1e40af;
-        border: 1px solid #3b82f6;
-    }
-
-    .priority-badge {
-        padding: 6px 12px;
-        border-radius: 16px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .priority-high {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        color: #dc2626;
-        border: 1px solid #f87171;
-    }
-
-    .priority-medium {
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #d97706;
-        border: 1px solid #f59e0b;
-    }
-
-    .priority-low {
-        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-        color: #059669;
-        border: 1px solid #10b981;
-    }
-
-    .detail-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-
-    .detail-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        margin-left: 1rem;
-    }
-
-    .detail-content {
-        flex: 1;
-    }
-
-    .detail-label {
-        font-weight: 600;
-        color: #374151;
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .detail-value {
-        color: #6b7280;
-        font-size: 16px;
-    }
-
-    .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid #f3f4f6;
-        border-top: 2px solid #3b82f6;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-   
-    .notification-toast {
-        position: fixed;
-        top: 2rem;
-        left: 2rem;
-        background: white;
-        border-radius: 16px;
-        padding: 1rem 1.5rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid #10b981;
-        transform: translateX(-100%);
-        opacity: 0;
-        transition: all 0.3s ease;
-        z-index: 1000;
-        max-width: 400px;
-    }
-
-    .notification-toast.show {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    .notification-toast.success {
-        border-left-color: #10b981;
-    }
-
-    .notification-toast.error {
-        border-left-color: #ef4444;
-    }
-
-    .notification-toast.warning {
-        border-left-color: #f59e0b;
-    }
-
-    .attachment-item {
-        display: inline-flex;
-        align-items: center;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 8px 12px;
-        margin: 4px;
-        transition: all 0.2s ease;
-    }
-
-    .attachment-item:hover {
-        background: #e2e8f0;
-        transform: translateY(-2px);
-    }
-
-  
-    /* تحسينات إمكانية الوصول */
-    .focus-visible:focus {
-        outline: 2px solid #3b82f6;
-        outline-offset: 2px;
-    }
-
-
-</style>
 
 <div class="task-details-container">
     <div class="container mx-auto px-4 max-w-7xl">
@@ -631,8 +263,7 @@
 </div>
 
 <!-- JavaScript للتفاعل -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
 <script>
     class TaskDetailsManager {
         constructor() {
@@ -642,7 +273,7 @@
 
         init() {
             this.bindEvents();
-            this.setupSignalR();
+            //this.setupSignalR();
         }
 
         bindEvents() {
@@ -698,6 +329,20 @@
                         commentText: commentText.value.trim()
                     })
                 });
+
+
+
+                //const response = await fetch('/Task/AddComment', {
+                //    method: 'POST',
+                //    headers: {
+                //        'Content-Type': 'application/json',
+                //        'RequestVerificationToken': this.getAntiForgeryToken()
+                //    },
+                //    body: JSON.stringify({
+                //        taskId: this.taskId,
+                //        commentText: commentText.value.trim()
+                //    })
+                //});
 
                 if (response.ok) {
                     const result = await response.json();
@@ -841,8 +486,10 @@
         setupSignalR() {
             // إعداد SignalR للإشعارات المباشرة
             try {
+                    const userId = "@Context.Session.GetString("UserId")";
+
                 const connection = new signalR.HubConnectionBuilder()
-                    .withUrl("/notificationHub")
+                    .withUrl("https://localhost:7172/notificationHub?userId=" + userId)
                     .build();
 
                 connection.start().then(() => {
@@ -874,4 +521,5 @@
 @Html.AntiForgeryToken()
 
 
- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+
+

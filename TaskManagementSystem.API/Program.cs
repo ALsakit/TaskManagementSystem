@@ -1,11 +1,13 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+ï»¿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskManagementSystem.API.Data;
 using TaskManagementSystem.API.Models;
-using TaskManagementSystem.API.Services; // áÇÍŞğÇ ááÎÏãÇÊ ãËá OverdueTaskChecker
-using TaskManagementSystem.API.Hubs;     // áÇÍŞğÇ áÜ SignalR
+using TaskManagementSystem.API.Services; // Ù„Ø§Ø­Ù‚Ù‹Ø§ Ù„Ù„Ø®Ø¯Ù…Ø§Øª Ù…Ø«Ù„ OverdueTaskChecker
+using TaskManagementSystem.API.Hubs;     // Ù„Ø§Ø­Ù‚Ù‹Ø§ Ù„Ù€ SignalR
+using System.Security.Claims;
+
 var builder = WebApplication.CreateBuilder(args);
 // 1. Configuration
 var configuration = builder.Configuration;
@@ -50,12 +52,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = configuration["JwtSettings:Issuer"],
             ValidAudience = configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:SecretKey"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:SecretKey"])),
+
+            NameClaimType = ClaimTypes.NameIdentifier
+
+        };
+        // ğŸ‘‡ Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„ØªÙˆÙƒÙ† Ù…Ù† WebSocket Ø¹Ø¨Ø± query string
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/notificationHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
 
-// 8. CORS Åä ÇÍÊÌäÇ (ãËáÇğ ááÓãÇÍ ááÜ MVC ÈØáÈÇÊ):
+// 8. CORS Ø¥Ù† Ø§Ø­ØªØ¬Ù†Ø§ (Ù…Ø«Ù„Ø§Ù‹ Ù„Ù„Ø³Ù…Ø§Ø­ Ù„Ù„Ù€ MVC Ø¨Ø·Ù„Ø¨Ø§Øª):
 //builder.Services.AddCors(options =>
 //{
 //    options.AddDefaultPolicy(policy =>
@@ -64,7 +85,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //              .AllowAnyMethod()
 //              .AllowCredentials() 
 //              .WithOrigins("https://localhost:7241", "http://localhost:5242");
-//        // ÚÏøöá Origins ÍÓÈ ÚäÇæíä MVC Ãæ ÇáæÇÌåÉ ÇáÃãÇãíÉ
+//        // Ø¹Ø¯Ù‘ÙÙ„ Origins Ø­Ø³Ø¨ Ø¹Ù†Ø§ÙˆÙŠÙ† MVC Ø£Ùˆ Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø£Ù…Ø§Ù…ÙŠØ©
 //    });
 //});
 // 4. Authorization
@@ -75,10 +96,25 @@ builder.Services.AddControllers();
 // 6. SignalR
 builder.Services.AddSignalR();
 
-// 7.Hosted Service áİÍÕ ÇáãåÇã ÇáãÊÃÎÑÉ
+// 7.Hosted Service Ù„ÙØ­Øµ Ø§Ù„Ù…Ù‡Ø§Ù… Ø§Ù„Ù…ØªØ£Ø®Ø±Ø©
 builder.Services.AddHostedService<OverdueTaskChecker>();
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+
+//builder.Services.AddScoped<NotificationService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMvcClient", policy =>
+    {
+        policy
+            .WithOrigins("https://localhost:7241") // âš ï¸ Ù…Ù†ÙØ° Ø§Ù„Ù€ MVC
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // âš ï¸ Ù…Ù‡Ù… Ø¬Ø¯Ù‹Ø§ Ù„Ù€ SignalR
+    });
+});
 
 var app = builder.Build();
 
@@ -90,6 +126,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseCors("AllowMvcClient");
+
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -98,7 +137,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+
 app.MapRazorPages();
 // 10. Map SignalR Hubs
 app.MapHub<NotificationHub>("/notificationHub");
+// ØªÙ… Ø§Ø¶Ø§ÙØªÙ‡ Ezz
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapControllers();
+//    endpoints.MapHub<NotificationHub>("/notificationHub");
+//});
+
 app.Run();

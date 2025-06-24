@@ -22,6 +22,53 @@ namespace TaskManagementSystem.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("TaskManagementSystem.API.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("TaskId")
+                        .IsRequired()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .IsRequired()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("TaskManagementSystem.API.Models.TaskComment", b =>
                 {
                     b.Property<int>("Id")
@@ -128,6 +175,25 @@ namespace TaskManagementSystem.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TaskManagementSystem.API.Models.Notification", b =>
+                {
+                    b.HasOne("TaskManagementSystem.API.Models.TaskItem", "Task")
+                        .WithMany("Notifications")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.HasOne("TaskManagementSystem.API.Models.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TaskManagementSystem.API.Models.TaskComment", b =>
                 {
                     b.HasOne("TaskManagementSystem.API.Models.TaskItem", "TaskItem")
@@ -161,11 +227,15 @@ namespace TaskManagementSystem.API.Migrations
             modelBuilder.Entity("TaskManagementSystem.API.Models.TaskItem", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("TaskManagementSystem.API.Models.User", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Tasks");
                 });

@@ -73,6 +73,7 @@ namespace TaskManagementSystem.MVC.Controllers
             HttpContext.Session.SetString("JWToken", result.token);
             HttpContext.Session.SetString("UserRole", result.user.Role);
             HttpContext.Session.SetString("UserName", result.user.Name);
+            HttpContext.Session.SetString("UserId", result.user.Id.ToString());
 
             //int x = 4;
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("JWToken")))

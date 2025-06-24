@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "SoUJyscFCnHyxPnNFAAEMGSQBVGBu/fyolbWCzJP9yU=",
+  "Hash": "R1uhTAPrbh+B+EPB70WJrcHrrGIENuVcTCFyntK2Ui4=",
   "Source": "TaskManagementSystem.MVC",
   "BasePath": "_content/TaskManagementSystem.MVC",
   "Mode": "Default",
@@ -85,6 +85,23 @@
       "OriginalItemSpec": "wwwroot\\favicon.ico"
     },
     {
+      "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\js\\employees.js",
+      "SourceId": "TaskManagementSystem.MVC",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\",
+      "BasePath": "_content/TaskManagementSystem.MVC",
+      "RelativePath": "js/employees.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\employees.js"
+    },
+    {
       "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\js\\site.js",
       "SourceId": "TaskManagementSystem.MVC",
       "SourceType": "Discovered",
@@ -100,6 +117,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\site.js"
+    },
+    {
+      "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\js\\taskManager.js",
+      "SourceId": "TaskManagementSystem.MVC",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\",
+      "BasePath": "_content/TaskManagementSystem.MVC",
+      "RelativePath": "js/taskManager.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\taskManager.js"
     },
     {
       "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",

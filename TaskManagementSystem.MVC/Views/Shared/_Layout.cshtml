@@ -58,116 +58,188 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - نظام إدارة المهام</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />*@
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <!-- Google Font Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- SignalR client -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+            const userId = "@Context.Session.GetString("UserId")";
+            //alert(userId);
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("https://localhost:7172/notificationHub?userId=" + userId)
+                .build();
+        connection.on("ReceiveNotification", function (data) {
+            if (data.userId != userId) return;
 
+            Swal.fire({
+                toast: true,
+                position: 'top-end', // أو 'bottom-end' حسب الرغبة
+                icon: 'info',       // أو 'success' أو 'warning' أو 'error' بناءً على نوع الإشعار
+                title: data.title,  // عنوان الإشعار
+                text: data.content, // نص الإشعار
+                showConfirmButton: false,
+                timer: 6000,        // يظهر 2 ثانية ثم يختفي
+                timerProgressBar: true,
+                background: '#fff', // اختياري: خلفية الإشعار
+                customClass: {
+                    popup: 'shadow-lg' // يمكنك إضافة CSS مخصص إذا أردت
+                }
+            });
+        });
+
+            //connection.on("ReceiveNotification", function (data) {
+            //    if (data.userId != userId) return;
+
+            //    alert("📢 إشعار جديد:\n" + data.title + "\n" + data.content);
+            //    // أو يمكنك تحديث واجهة المستخدم بدلاً من التنبيه
+            //});
+
+
+
+            connection.start().then(() => {
+                console.log("✅ SignalR Connected!");
+            }).catch(function (err) {
+                console.error("❌ SignalR Error:", err.toString());
+            });
+    </script>
     <style>
         /*body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f5f5f5;
-        }
+                    font-family: 'Cairo', sans-serif;
+                    background-color: #f5f5f5;
+                }
 
-        /* Container for notifications */
+                /* Container for notifications */
         #notificationContainer {
             position: fixed;
             top: 1rem;
             left: 1rem;
             z-index: 1000;
-        }*/
-         * {
+        }
+
+        */
+        * {
             font-family: 'Cairo', sans-serif;
         }
-        
+
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         .card-shadow {
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        
+
         .hover-scale {
             transition: transform 0.2s;
         }
-        
-        .hover-scale:hover {
-            transform: scale(1.02);
-        }
-        
+
+            .hover-scale:hover {
+                transform: scale(1.02);
+            }
+
         .animate-fade-in {
             animation: fadeIn 0.6s ease-in;
         }
-        
-        
-        
+
+
+
         .status-badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
         }
-        
-        .status-new { background-color: #dbeafe; color: #1e40af; }
-        .status-progress { background-color: #fef3c7; color: #92400e; }
-        .status-completed { background-color: #d1fae5; color: #065f46; }
-        .status-overdue { background-color: #fee2e2; color: #991b1b; }
-        
+
+        .status-new {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-progress {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
         .sidebar {
             background: linear-gradient(180deg, #1f2937 0%, #374151 100%);
             min-height: 100vh;
         }
-        
+
         .sidebar-item {
             transition: all 0.3s;
             border-radius: 8px;
         }
-        
-        .sidebar-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateX(-4px);
-        }
-        
-        .sidebar-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-right: 4px solid #3b82f6;
-        }
-        
+
+            .sidebar-item:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                transform: translateX(-4px);
+            }
+
+            .sidebar-item.active {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-right: 4px solid #3b82f6;
+            }
+
         .login-container {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
-        
+
         .login-form {
             backdrop-filter: blur(10px);
             background: rgba(255, 255, 255, 0.95);
         }
-        
+
         .task-card {
             border-right: 4px solid transparent;
             transition: all 0.3s;
         }
-        
-        .task-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-        
-        .task-card.new { border-right-color: #3b82f6; }
-        .task-card.progress { border-right-color: #f59e0b; }
-        .task-card.completed { border-right-color: #10b981; }
-        .task-card.overdue { border-right-color: #ef4444; }
-        
+
+            .task-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            }
+
+            .task-card.new {
+                border-right-color: #3b82f6;
+            }
+
+            .task-card.progress {
+                border-right-color: #f59e0b;
+            }
+
+            .task-card.completed {
+                border-right-color: #10b981;
+            }
+
+            .task-card.overdue {
+                border-right-color: #ef4444;
+            }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -176,46 +248,47 @@
             max-width: 350px;
             animation: slideIn 0.3s ease-out;
         }
-        
-        
-        
+
+
+
         .chart-container {
             position: relative;
             height: 400px;
             width: 100%;
         }
+
     </style>
 
     @RenderSection("Styles", required: false)
 </head>
 @*<body class="min-h-screen flex ">*@
-   <body class="bg-gray-100">
+<body class="bg-gray-100">
 
     <!-- شريط التنقل -->
-   @* @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
-    {
+    @* @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
+        {
         <nav class="bg-white shadow">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <a asp-controller="Home" asp-action="Index" class="text-xl font-bold text-gray-800">نظام إدارة المهام</a>
-                <div>
-                    <a asp-controller="Home" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">لوحة التحكم الرئيسية </a>
-                    <a asp-controller="Task" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">المهام</a>
-                    <a asp-controller="Dashboard" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">التقارير</a>
-                    <a asp-controller="Employee" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">الموظفون</a>
-                    <a asp-controller="Auth" asp-action="Logout" class="mx-2 text-gray-700 hover:text-red-500">خروج</a>
-                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a asp-controller="Home" asp-action="Index" class="text-xl font-bold text-gray-800">نظام إدارة المهام</a>
+        <div>
+        <a asp-controller="Home" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">لوحة التحكم الرئيسية </a>
+        <a asp-controller="Task" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">المهام</a>
+        <a asp-controller="Dashboard" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">التقارير</a>
+        <a asp-controller="Employee" asp-action="Index" class="mx-2 text-gray-700 hover:text-blue-500">الموظفون</a>
+        <a asp-controller="Auth" asp-action="Logout" class="mx-2 text-gray-700 hover:text-red-500">خروج</a>
+        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
 
 
-                </div>
-            </div>
+        </div>
+        </div>
         </nav>
-    }*@
-   <!-- الشريط الجانبي الثابت -->
+        }*@
+    <!-- الشريط الجانبي الثابت -->
     @if (HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null)
     {
         <div class="fixed top-0 right-0 w-64 h-screen bg-indigo-600 text-white p-4 z-10">
             <!-- شعار -->
-            <div class="flex items-center mb-8">
+        <div class="flex items-center mb-8">
                 <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center ml-3">
                     <i class="fas fa-tasks text-indigo-600"></i>
                 </div>
@@ -223,38 +296,50 @@
             </div>
 
             <!-- القائمة -->
-            <nav class="space-y-2">
+        <nav class="space-y-2">
                 <a asp-controller="Home" asp-action="Index"
-                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" ? "bg-indigo-700" : "")">
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" ? "bg-indigo-700" : "")">
                     <i class="fas fa-home ml-3"></i>لوحة التحكم
                 </a>
                 <a asp-controller="Task" asp-action="Index"
-                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" ? "bg-indigo-700" : "")">
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" ? "bg-indigo-700" : "")">
                     <i class="fas fa-tasks ml-3"></i>المهام
                 </a>
                 <a asp-controller="Dashboard" asp-action="Index"
-                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard" ? "bg-indigo-700" : "")">
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard" ? "bg-indigo-700" : "")">
                     <i class="fas fa-chart-bar ml-3"></i>التقارير
                 </a>
                 <a asp-controller="Employee" asp-action="Index"
-                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Employee" ? "bg-indigo-700" : "")">
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Employee" ? "bg-indigo-700" : "")">
                     <i class="fas fa-users ml-3"></i>الموظفون
                 </a>
                 @*<a asp-controller="Notifications" asp-action="Index" asp-route-id="1"
-       class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
-        <i class="fas fa-bell ml-3"></i>الإشعارات
-    </a>*@
-    <a asp-controller="Notifications" asp-action="Index"
-       class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Notifications" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
-        <i class="fas fa-bell ml-3"></i>الإشعارات
-    </a>
+                    class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Task" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-bell ml-3"></i>الإشعارات
+                    </a>*@
+                <a asp-controller="Notifications" asp-action="Index"
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500 @(ViewContext.RouteData.Values["controller"]?.ToString()=="Notifications" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "bg-indigo-700" : "")">
+                    <i class="fas fa-bell ml-3"></i>الإشعارات
+                </a>
                 <a asp-controller="Auth" asp-action="Logout"
-                   class="flex items-center p-3 rounded-lg hover:bg-indigo-500">
+               class="flex items-center p-3 rounded-lg hover:bg-indigo-500">
                     <i class="fas fa-sign-out-alt ml-3"></i>خروج
                 </a>
             </nav>
         </div>
     }
+    <!-- في الـ Layout، داخل الـ <body> -->
+    <div id="globalToast" class="show fixed top-4 right-4 max-w-sm z-50 pointer-events-none opacity-0 transition-opacity duration-300">
+        <div id="globalToastContent" class="bg-white shadow-lg rounded-lg overflow-hidden border-l-4">
+            <div id="globalToastIcon" class="p-3">
+                <!-- الأيقونة ستُضبط عن طريق JS -->
+            </div>
+            <div class="px-4 pb-3">
+                <div id="globalToastTitle" class="font-semibold text-gray-800"></div>
+                <div id="globalToastMessage" class="text-gray-600 text-sm"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- محتوى الصفحة -->
     <div class="min-h-screen overflow-y-auto @(HttpContextAccessor.HttpContext.Session.GetString("JWToken") != null ? "mr-64" : "")">
@@ -263,38 +348,94 @@
         </main>
     </div>
 
+
     <!-- إشعارات -->
     <div id="notificationContainer"></div>
 
+
+
+
+
     <script>
-        (function () {
-            const token = '@HttpContextAccessor.HttpContext.Session.GetString("JWToken")';
-            const userId = '@HttpContextAccessor.HttpContext.Session.GetString("UserId")';
-            if (token && userId) {
-                const connection = new signalR.HubConnectionBuilder()
-                    .withUrl("/notificationHub", {
-                        accessTokenFactory: () => token
-                    })
-                    .configureLogging(signalR.LogLevel.Information)
-                    .build();
 
-                connection.start().then(function () {
-                    connection.invoke("JoinGroup", `User_${userId}`).catch(err => console.error(err.toString()));
-                }).catch(function (err) {
-                    console.error(err.toString());
-                });
 
-                connection.on("ReceiveNotification", function (data) {
-                    const container = document.getElementById("notificationContainer");
-                    const alertDiv = document.createElement("div");
-                    alertDiv.className = "mb-2 p-4 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded";
-                    alertDiv.innerHTML = data.message;
-                    container.appendChild(alertDiv);
 
-                    setTimeout(() => alertDiv.remove(), 5000);
-                });
-            }
-        })();
+
+        //showToast = function(title, message, type = 'success', duration = 5000) {
+        //    // العناصر
+        //    const toast = document.getElementById('globalToast');
+        //    const iconContainer = document.getElementById('globalToastIcon');
+        //    const titleElem = document.getElementById('globalToastTitle');
+        //    const messageElem = document.getElementById('globalToastMessage');
+
+        //    if (!toast || !iconContainer || !titleElem || !messageElem) return;
+
+        //    // إعداد المحتوى
+        //    titleElem.textContent = title;
+        //    messageElem.textContent = message;
+
+        //    // ضبط النوع: تزيل أصناف النوع السابق، تضيف الصنف الحالي
+        //    toast.classList.remove('success', 'error', 'warning', 'info');
+        //    toast.classList.add(type);
+
+        //    // اختر الأيقونة حسب النوع
+        //    let iconHtml = '';
+        //    switch(type) {
+        //        case 'success':
+        //            iconHtml = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+        //            break;
+        //        case 'error':
+        //            iconHtml = '<i class="fas fa-times-circle text-red-500 text-xl"></i>';
+        //            break;
+        //        case 'warning':
+        //            iconHtml = '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>';
+        //            break;
+        //        case 'info':
+        //            iconHtml = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+        //            break;
+        //        default:
+        //            iconHtml = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+        //    }
+        //    iconContainer.innerHTML = iconHtml;
+
+        //    // أضف صنف show لبدء الظهور
+        //    toast.classList.add('show');
+
+        //    // بعد المدة: إزالة show لإخفائه
+        //    setTimeout(() => {
+        //        toast.classList.remove('show');
+        //    }, duration);
+        //};
+
+
+            (function () {
+                const token = '@HttpContextAccessor.HttpContext.Session.GetString("JWToken")';
+                const userId = '@HttpContextAccessor.HttpContext.Session.GetString("UserId")';
+                if (token && userId) {
+                    const connection = new signalR.HubConnectionBuilder()
+                        .withUrl("/notificationHub", {
+                            accessTokenFactory: () => token
+                        })
+                        .configureLogging(signalR.LogLevel.Information)
+                        .build();
+
+                    connection.start().then(function () {
+                        connection.invoke("JoinGroup", `User_${userId}`).catch(err => console.error(err.toString()));
+                    }).catch(function (err) {
+                        console.error(err.toString());
+                    });
+
+                    connection.on("ReceiveNotification", function (data) {
+                        const container = document.getElementById("notificationContainer");
+                        const alertDiv = document.createElement("div");
+                        alertDiv.className = "mb-2 p-4 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded";
+                        alertDiv.innerHTML = data.message;
+                        container.appendChild(alertDiv);
+
+                        setTimeout(() => alertDiv.remove(), 5000);
+                    });
+                }
+            })();
     </script>
 
     @RenderSection("Scripts", required: false)

@@ -21,5 +21,6 @@ namespace TaskManagementSystem.API.Models
         public User AssignedTo { get; set; }
 
         public ICollection<TaskComment> Comments { get; set; }
+        public ICollection<Notification> Notifications { get; set; }
     }
 }
