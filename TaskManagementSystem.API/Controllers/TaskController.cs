@@ -69,30 +69,7 @@ namespace TaskManagementSystem.API.Controllers
             };
         }
 
-        // GET: api/Task
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
-        //{
-        //    return await _context.TaskItems
-        //        .Include(t => t.AssignedTo)
-        //        .Include(t => t.Comments)
-        //        .ToListAsync();
-        //}
-
-        //// GET: api/Task/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<TaskItem>> GetTaskItem(int id)
-        //{
-        //    var taskItem = await _context.TaskItems
-        //        .Include(t => t.AssignedTo)
-        //        .Include(t => t.Comments)
-        //        .FirstOrDefaultAsync(t => t.Id == id);
-
-        //    if (taskItem == null)
-        //        return NotFound();
-
-        //    return taskItem;
-        //}
+        
 
         public class TaskDto
         {
