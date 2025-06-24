@@ -19,12 +19,12 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Dashboard/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
+[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Auth/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Dashboard/Index11.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4MTEuY3NodG1s
+[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Dashboard/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Employee/Create.cshtml]
@@ -39,28 +39,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wbG95ZWVcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Employee/Index11.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wbG95ZWVcSW5kZXgxMS5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Home/Index1.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleDEuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Notifications/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Notifications/Index1.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleDEuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Shared/Error.cshtml]
@@ -79,24 +63,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Task/Details1.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xEZXRhaWxzMS5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Task/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Task/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xJbmRleC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Task/Index1.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xJbmRleDEuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/Task/Index11.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza1xJbmRleDExLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lenovo/source/repos/TaskManagementSystem/TaskManagementSystem.MVC/Views/_ViewImports.cshtml]

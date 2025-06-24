@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<TaskManagementSystem.MVC.Models.EmployeeViewModel>
 @{
     ViewData["Title"] = "قائمة الموظفين";
+     Layout = "_Layout";
 }
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
@@ -79,17 +80,7 @@
                                         </span>
                                     </div>
                                 </td>
-                                @*<td class="px-8 py-6 whitespace-nowrap text-start">
-                                    <div class="flex items-center justify-end">
-                                        <div class="flex-shrink-0 h-10 w-10 ml-4">
-                                            <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
-                                                @emp.Name.Substring(0, 1)
-                                            </div>
-
-                                        </div>
-                                        <div class="text-sm  text-left font-semibold text-gray-900">@emp.Name</div>
-                                    </div>
-                                </td>*@
+                                
                                 <td class="px-8 py-6 whitespace-nowrap text-left">
   <div class="flex  items-center">
     <!-- الحرف الأول -->

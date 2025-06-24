@@ -1,11 +1,12 @@
 ﻿@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
 @{
-   
+
+    Layout = "_Layout";
     ViewData["Title"] = "قائمة المهام";
     var role = Context.Session.GetString("UserRole");
 }
 
-<!-- رأس الصفحة المحسن -->
+
 <div class="header-section">
     <div class="flex justify-between items-center relative z-10">
         <div>

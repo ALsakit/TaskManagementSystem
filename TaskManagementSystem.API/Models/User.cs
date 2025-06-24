@@ -1,9 +1,4 @@
-﻿//namespace TaskManagementSystem.API.Models
-//{
-//    public class User
-//    {
-//    }
-//}
+﻿
 using System.Collections.Generic;
 
 namespace TaskManagementSystem.API.Models

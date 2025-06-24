@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "R1uhTAPrbh+B+EPB70WJrcHrrGIENuVcTCFyntK2Ui4=",
+  "Hash": "qAIkG3J/CKgOl0g+NL509XxqOa+ajk/skXUajtNENgw=",
   "Source": "TaskManagementSystem.MVC",
   "BasePath": "_content/TaskManagementSystem.MVC",
   "Mode": "Default",
@@ -83,23 +83,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
-    },
-    {
-      "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\js\\employees.js",
-      "SourceId": "TaskManagementSystem.MVC",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\",
-      "BasePath": "_content/TaskManagementSystem.MVC",
-      "RelativePath": "js/employees.js",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\js\\employees.js"
     },
     {
       "Identity": "C:\\Users\\lenovo\\source\\repos\\TaskManagementSystem\\TaskManagementSystem.MVC\\wwwroot\\js\\site.js",

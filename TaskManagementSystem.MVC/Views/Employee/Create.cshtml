@@ -1,41 +1,4 @@
-﻿@*@model TaskManagementSystem.MVC.Models.EmployeeCreateViewModel
-@{
-    ViewData["Title"] = "إضافة موظف جديد";
-}
-
-<div class="card">
-    <h2 class="text-2xl font-semibold mb-4">إضافة موظف جديد</h2>
-    <form asp-action="Create" method="post">
-        <div asp-validation-summary="All" class="text-red-600 mb-3"></div>
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">الاسم</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
-            <input asp-for="Email" class="form-control" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label">كلمة المرور</label>
-            <input asp-for="Password" type="password" class="form-control" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Role" class="form-label">الدور</label>
-            <select asp-for="Role" asp-items="Model.Roles" class="form-control"></select>
-            <span asp-validation-for="Role" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">حفظ</button>
-        <a asp-action="Index" class="btn btn-secondary ms-2">إلغاء</a>
-    </form>
-</div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
-*@
+﻿
 @model TaskManagementSystem.MVC.Models.EmployeeCreateViewModel
 @{
     ViewData["Title"] = "إضافة موظف جديد";
@@ -84,4 +47,3 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />

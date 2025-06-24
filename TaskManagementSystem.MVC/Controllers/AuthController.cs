@@ -40,11 +40,72 @@ namespace TaskManagementSystem.MVC.Controllers
 
         }
 
+        // GET: /Auth/Register
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
 
+        // POST: /Auth/Register
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
 
+            // التحويل إلى النموذج الذي تتوقعه API
+            var createUserObj = new
+            {
+                Name = model.Name,
+                Email = model.Email,
+                Password = model.Password,
+                Role = "User" // أو model.Role إذا عرضت حقل الدور للمستخدم
+            };
+
+            var client = _clientFactory.CreateClient();
+            client.BaseAddress = new System.Uri(_apiBaseUrl);
+           
+
+            var json = JsonConvert.SerializeObject(createUserObj);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await client.PostAsync("User", content); // endpoint: POST api/User
+            }
+            catch (HttpRequestException ex)
+            {
+                // خطأ في الاتصال بالـ API
+                ModelState.AddModelError("", "تعذّر الاتصال بالخادم. حاول لاحقاً.");
+                return View(model);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // قراءة رسالة الخطأ من الـ API (مثلاً Email موجود سابقاً)
+                var errorContent = await response.Content.ReadAsStringAsync();
+                // اعتماداً على تنسيق الخطأ: إذا كانت رسالة نصية:
+                ModelState.AddModelError("", $"فشل التسجيل: {errorContent}");
+                // أو يمكنك تحليل JSON إذا كان الـ API يعيد رسائل مفصّلة
+                return View(model);
+            }
+
+            // عند النجاح:
+            TempData["RegisterSuccess"] = "تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.";
+            return RedirectToAction("Login");
+        }
+
+        // يجب تعديل GET Login ليعرض رسالة نجاح التسجيل إن وجدت:
         [HttpGet]
         public IActionResult Login()
         {
+            if (TempData["RegisterSuccess"] != null)
+            {
+                ViewBag.RegisterSuccess = TempData["RegisterSuccess"];
+            }
             return View();
         }
         [HttpPost]
@@ -90,40 +151,7 @@ namespace TaskManagementSystem.MVC.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> Login1(LoginViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(model);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("Auth/login", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError("", "فشل تسجيل الدخول");
-                return View(model);
-            }
-
-            var result = await response.Content.ReadAsStringAsync();
-            var jobj = JObject.Parse(result);
-            var token = jobj["token"]?.ToString();
-            var role = jobj["role"]?.ToString();
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                _httpContextAccessor.HttpContext.Session.SetString("JWToken", token);
-                _httpContextAccessor.HttpContext.Session.SetString("UserRole", role ?? "");
-                // كذلك حفظ UserId وName إن رغبت:
-                // يمكنك قراءة Claims من التوكن إذا أردت: لكن MVC لا تفكك JWT تلقائيًا، تحتاج مكتبة JWT للتحليل.
-
-                return RedirectToAction("Index", "Task");
-            }
-
-            ModelState.AddModelError("", "فشل استرداد التوكن");
-            return View(model);
-        }
+      
 
         public IActionResult Logout()
         {

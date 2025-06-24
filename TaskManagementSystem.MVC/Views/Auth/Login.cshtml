@@ -10,6 +10,20 @@
 <!-- صفحة تسجيل الدخول -->
 <div id="loginPage" class="login-container flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-700 to-indigo-900 p-4">
     <div class="animate-fade-in w-full max-w-md">
+        @* عرض رسالة نجاح التسجيل إن وُجدت *@
+        @if (ViewBag.RegisterSuccess != null)
+        {
+            <div class="text-green-600 text-center mb-4">
+                <i class="fas fa-check-circle ml-2"></i> @ViewBag.RegisterSuccess
+            </div>
+        }
+        @* عرض رسائل خطأ مؤقتة أو TempData["Error"] إن وجدت *@
+        @if (TempData["Error"] != null)
+        {
+            <div class="text-red-600 text-center mb-4">
+                <i class="fas fa-exclamation-circle ml-2"></i> @TempData["Error"]
+            </div>
+        }
         <!-- عنوان النظام -->
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
@@ -56,9 +70,11 @@
                 </button>
             </form>
 
-            <div class="mt-6 text-center">
-                <p class="text-gray-600">ليس لديك حساب؟ <a href="#" class="text-indigo-600 hover:text-indigo-500 font-medium">أنشئ حسابًا جديدًا</a></p>
-            </div>
+             <div class="mt-6 text-center">
+
+            <p class="text-gray-600">ليس لديك حساب؟ <a asp-controller="Auth" asp-action="Register" class="text-indigo-600 hover:text-indigo-500 font-medium">أنشئ حسابًا جديدًا</a>
+</p>
+        </div>
         </div>
     </div>
 </div>
