@@ -25,20 +25,7 @@ namespace TaskManagementSystem.API.Controllers
             _hubContext = hubContext;
         }
 
-        //public class TaskDto
-        //{
-        //    public int Id { get; set; }
-        //    public string Title { get; set; }
-        //    public string Description { get; set; }
-        //    public string Priority { get; set; }
-        //    public string System { get; set; }
-        //    public DateTime CreatedAt { get; set; }
-        //    public DateTime? DueDate { get; set; }
-        //    public string Status { get; set; }
-        //    public int AssignedToUserId { get; set; }
-        //    public string AssignedToName { get; set; }
-        //}
-
+       
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetTasks()
