@@ -1,0 +1,20 @@
+# ملفات Visual Studio
+.vs/
+*.user
+*.suo
+
+# مجلدات build المؤقتة
+bin/
+obj/
+
+# ملفات مؤقتة من أدوات البناء
+*.cache
+*.dbmdl
+*.v1
+*.v2
+*.sentinel
+*.razor.json
+
+# أخرى
+*.log
+*.tmp
