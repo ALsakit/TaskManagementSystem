@@ -1,0 +1,136 @@
+﻿@model List<NotificationViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "الإشعارات";
+    var unreadCount = Model.Count(n => !n.IsRead);
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <title>نظام إدارة المهام - الإشعارات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .rtl { direction: rtl; }
+        .notification-badge { animation: pulse 2s infinite; }
+        .notification-dropdown { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans rtl">
+
+<header class="bg-white shadow-md">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-bell text-blue-600 ml-2"></i>
+            الإشعارات
+        </h1>
+        <div class="relative">
+            <button id="notificationBtn" class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                <i class="fas fa-bell text-xl"></i>
+                @if (unreadCount > 0)
+                {
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center notification-badge">
+                        @unreadCount
+                    </span>
+                }
+            </button>
+
+            <div id="notificationDropdown" class="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border hidden z-50">
+                <div class="p-4 border-b">
+                    <h3 class="font-semibold text-gray-800">الإشعارات</h3>
+                </div>
+                <div class="notification-dropdown p-2">
+                    @foreach (var notif in Model.OrderByDescending(n => n.CreatedDate))
+                    {
+                        <div class="p-3 border-b hover:bg-gray-50 cursor-pointer @(notif.IsRead ? "" : "bg-blue-50")">
+                            <div class="flex items-start space-x-3 space-x-reverse">
+                                <div class="flex-shrink-0">
+                                    <i class="fas @(GetNotificationIcon(notif.Type)) text-blue-600"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900 font-semibold">@notif.Title</p>
+                                    <p class="text-sm text-gray-700">@notif.Content</p>
+                                    <p class="text-xs text-gray-500 mt-1">@notif.CreatedDate</p>
+                                </div>
+                                @if (!notif.IsRead)
+                                {
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="p-3 border-t text-center">
+                    <form method="post" asp-controller="Notifications" asp-action="MarkAllAsRead">
+                        <button type="submit" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            تحديد الكل كمقروء
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 py-8">
+    <h2 class="text-xl font-bold mb-4">قائمة الإشعارات</h2>
+    <div class="notification-dropdown border rounded-lg bg-white p-4 max-h-[400px] overflow-y-auto">
+        @foreach (var notif in Model.OrderByDescending(n => n.CreatedDate))
+        {
+            <div class="p-3 border-b hover:bg-gray-50 cursor-pointer @(notif.IsRead ? "" : "bg-blue-50")">
+                <div class="flex items-start space-x-3 space-x-reverse">
+                    <div class="flex-shrink-0">
+                        <i class="fas @(GetNotificationIcon(notif.Type)) text-blue-600"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900 font-semibold">@notif.Title</p>
+                        <p class="text-sm text-gray-700">@notif.Content</p>
+                        <p class="text-xs text-gray-500 mt-1">@notif.CreatedDate</p>
+                    </div>
+                    @if (!notif.IsRead)
+                    {
+                        <div class="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</main>
+
+<script>
+    const btn = document.getElementById("notificationBtn");
+    const dropdown = document.getElementById("notificationDropdown");
+
+    btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        dropdown.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function () {
+        dropdown.classList.add("hidden");
+    });
+
+
+</script>
+
+@functions {
+    string GetNotificationIcon(string type)
+    {
+        return type switch
+        {
+            "TaskAssigned" => "fa-tasks",
+            "TaskUpdated" => "fa-sync-alt",
+            "TaskCompleted" => "fa-check-circle",
+            "TaskOverdue" => "fa-clock",
+            "TaskComment" => "fa-comment",
+            "System" => "fa-cog",
+            _ => "fa-bell"
+        };
+    }
+}
+</body>
+</html>

@@ -1,0 +1,232 @@
+﻿@model IEnumerable<TaskManagementSystem.MVC.Models.TaskViewModel>
+@{
+
+    Layout = "_Layout";
+    ViewData["Title"] = "قائمة المهام";
+    var role = Context.Session.GetString("UserRole");
+}
+
+
+<div class="header-section">
+    <div class="flex justify-between items-center relative z-10">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">قائمة المهام</h1>
+            <p class="text-blue-100">إدارة وتتبع جميع المهام بكفاءة</p>
+        </div>
+        <button onclick="openCreateModal()" class="btn-primary-new">
+            <i class="fas fa-plus"></i>
+            مهمة جديدة
+        </button>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-blue-600" id="totalTasks">@Model.Count()</div>
+        <div class="text-gray-600">إجمالي المهام</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-green-600" id="completedTasks">@Model.Count(t => t.Status == "Completed")</div>
+        <div class="text-gray-600">مهام مكتملة</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-red-600" id="overdueTasks">@Model.Count(t => t.Status == "Overdue")</div>
+        <div class="text-gray-600">مهام متأخرة</div>
+    </div>
+    <div class="stat-card">
+        <div class="text-2xl font-bold text-yellow-600" id="pendingTasks">@Model.Count(t => t.Status != "Completed" && t.Status != "Overdue")</div>
+        <div class="text-gray-600">مهام قيد التنفيذ</div>
+    </div>
+</div>
+
+<!-- شريط البحث والفلترة -->
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="البحث في المهام..." onkeyup="filterTasks()">
+    <i class="fas fa-search search-icon"></i>
+</div>
+
+<!-- فلاتر -->
+<div class="flex flex-wrap gap-4 mb-6">
+    <select id="priorityFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterTasks()">
+        <option value="">جميع الأولويات</option>
+        <option value="High">عالية</option>
+        <option value="Medium">متوسطة</option>
+        <option value="Low">منخفضة</option>
+    </select>
+    <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterTasks()">
+        <option value="">جميع الحالات</option>
+        <option value="Completed">مكتملة</option>
+        <option value="Overdue">متأخرة</option>
+        <option value="Pending">قيد التنفيذ</option>
+    </select>
+</div>
+
+<!-- مؤشر التحميل -->
+<div class="loading-spinner" id="loadingSpinner" style="display: none;">
+    <div class="spinner"></div>
+    <span>جاري التحميل...</span>
+</div>
+
+<!-- قائمة المهام -->
+<div class="grid gap-6" id="tasksContainer">
+    @foreach (var task in Model)
+    {
+        <div class="task-card p-6" data-title="@task.Title.ToLower()" data-priority="@task.Priority" data-status="@task.Status">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex-1">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">@task.Title</h3>
+                    <p class="text-gray-600 mb-3">@task.Description</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                        <span><i class="fas fa-calendar-alt ml-1"></i>@task.DueDate?.ToString("dd/MM/yyyy")</span>
+                        <span><i class="fas fa-desktop ml-1"></i>@task.System</span>
+                        <span><i class="fas fa-user ml-1"></i>@task.AssignedToName</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-3">
+                    <span class="priority-badge priority-@task.Priority.ToLower()">@task.Priority</span>
+                    <span class="status-badge status-@(task.Status == "Completed" ? "completed" : task.Status == "Overdue" ? "overdue" : "pending")">
+                        @if (task.Status == "Completed")
+                        {
+                            <i class="fas fa-check-circle"></i>
+                        }
+                        else if (task.Status == "Overdue")
+                        {
+                            <i class="fas fa-exclamation-triangle"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-clock"></i>
+                        }
+                        @task.Status
+                    </span>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onclick="openEditModal(@task.Id)" class="action-btn btn-edit">
+                    <i class="fas fa-edit"></i>
+                    تعديل
+                </button>
+                <a asp-action="Details" asp-route-id="@task.Id" class="action-btn btn-details">
+                    <i class="fas fa-eye"></i>
+                    تفاصيل
+                </a>
+                @if (role == "Manager" || role == "Admin")
+                {
+                    <button onclick="confirmDelete(@task.Id, '@task.Title')" class="action-btn btn-delete">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- النموذج المنبثق للإنشاء والتعديل -->
+<div id="taskModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">مهمة جديدة</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="taskForm" class="grid md:grid-cols-2 gap-6">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="taskId" name="Id" value="0" />
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        عنوان المهمة <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="taskTitle" name="Title" required 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                           placeholder="أدخل عنوان المهمة" />
+                    <span class="text-red-500 text-sm" id="titleError" style="display: none;"></span>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        الأولوية <span class="text-red-500">*</span>
+                    </label>
+                    <select id="taskPriority" name="Priority" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <option value="">-- اختر الأولوية --</option>
+                        <option value="Low">منخفضة</option>
+                        <option value="Medium">متوسطة</option>
+                        <option value="High">عالية</option>
+                    </select>
+                    <span class="text-red-500 text-sm" id="priorityError" style="display: none;"></span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">وصف المهمة</label>
+                    <textarea id="taskDescription" name="Description" rows="4" 
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-vertical" 
+                              placeholder="أدخل وصف تفصيلي للمهمة"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">النظام المرتبط</label>
+                    <input type="text" id="taskSystem" name="System" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                           placeholder="أدخل النظام المرتبط" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">تاريخ الاستحقاق</label>
+                    <input type="date" id="taskDueDate" name="DueDate" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                </div>
+
+                <div id="statusField" style="display: none;">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">الحالة</label>
+                    <select id="taskStatus" name="Status" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <option value="">-- اختر الحالة --</option>
+                        <option value="Pending">قيد التنفيذ</option>
+                        <option value="InProgress">قيد التطوير</option>
+                        <option value="Completed">مكتملة</option>
+                        <option value="Overdue">متأخرة</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        تعيين إلى <span class="text-red-500">*</span>
+                    </label>
+                    <select id="taskAssignedTo" name="AssignedToUserId" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <option value="">-- اختر موظفًا --</option>
+                        <!-- سيتم ملء هذه القائمة ديناميكيًا من قاعدة البيانات -->
+                    </select>
+                    <span class="text-red-500 text-sm" id="assignedtoError" style="display: none;"></span>
+                </div>
+
+                <div class="md:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200">
+                        إلغاء
+                    </button>
+                    <button type="submit" id="submitBtn" 
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center gap-2">
+                        <span id="submitText">إنشاء المهمة</span>
+                        <i id="submitSpinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- تضمين المكتبات المطلوبة -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- تضمين ملف JavaScript المحسن -->
+<script src="~/js/taskManager.js"></script>
+
+

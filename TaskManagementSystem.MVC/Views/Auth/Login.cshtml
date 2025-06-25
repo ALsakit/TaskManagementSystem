@@ -1,0 +1,80 @@
+﻿
+
+@model TaskManagementSystem.MVC.Models.LoginViewModel
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+     Layout = "_Layout";
+}
+
+
+<!-- صفحة تسجيل الدخول -->
+<div id="loginPage" class="login-container flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-700 to-indigo-900 p-4">
+    <div class="animate-fade-in w-full max-w-md">
+        @* عرض رسالة نجاح التسجيل إن وُجدت *@
+        @if (ViewBag.RegisterSuccess != null)
+        {
+            <div class="text-green-600 text-center mb-4">
+                <i class="fas fa-check-circle ml-2"></i> @ViewBag.RegisterSuccess
+            </div>
+        }
+        @* عرض رسائل خطأ مؤقتة أو TempData["Error"] إن وجدت *@
+        @if (TempData["Error"] != null)
+        {
+            <div class="text-red-600 text-center mb-4">
+                <i class="fas fa-exclamation-circle ml-2"></i> @TempData["Error"]
+            </div>
+        }
+        <!-- عنوان النظام -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+                <i class="fas fa-tasks text-3xl text-indigo-600"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-white mb-2">نظام إدارة المهام</h1>
+            <p class="text-indigo-100 text-lg">منصة شاملة لإدارة وتنظيم المهام والمشاريع</p>
+        </div>
+
+        <!-- نموذج تسجيل الدخول -->
+        <div class="login-form w-full p-8 rounded-xl bg-white shadow-lg">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">تسجيل الدخول</h2>
+                <p class="text-gray-600">أدخل بياناتك للوصول إلى النظام</p>
+            </div>
+
+            <form asp-action="Login" method="post" class="space-y-6">
+                <div>
+                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope ml-2"></i> البريد الإلكتروني
+                    </label>
+                    <input asp-for="Email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="أدخل البريد الإلكتروني" />
+                    <span asp-validation-for="Email" class="text-sm text-red-600 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock ml-2"></i> كلمة المرور
+                    </label>
+                    <input asp-for="Password" type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="أدخل كلمة المرور" />
+                    <span asp-validation-for="Password" class="text-sm text-red-600 mt-1 block"></span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                        <span class="mr-2 text-sm text-gray-600">تذكرني</span>
+                    </label>
+                    <a href="#" class="text-sm text-indigo-600 hover:text-indigo-500">نسيت كلمة المرور؟</a>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium">
+                    <i class="fas fa-sign-in-alt ml-2"></i> دخول
+                </button>
+            </form>
+
+             <div class="mt-6 text-center">
+
+            <p class="text-gray-600">ليس لديك حساب؟ <a asp-controller="Auth" asp-action="Register" class="text-indigo-600 hover:text-indigo-500 font-medium">أنشئ حسابًا جديدًا</a>
+</p>
+        </div>
+        </div>
+    </div>
+</div>

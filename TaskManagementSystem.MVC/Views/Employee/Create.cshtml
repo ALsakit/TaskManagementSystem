@@ -1,0 +1,49 @@
+﻿
+@model TaskManagementSystem.MVC.Models.EmployeeCreateViewModel
+@{
+    ViewData["Title"] = "إضافة موظف جديد";
+}
+<div class="mb-8">
+    <h3 class="text-2xl font-semibold mb-4 text-gray-700">@ViewData["Title"]</h3>
+    <div class="bg-white rounded-lg shadow-lg p-8 border">
+        <form asp-action="Create" method="post" class="space-y-6">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-red-500 text-sm"></div>
+
+            <div>
+                <label asp-for="Name" class="block text-sm font-semibold text-gray-700 mb-2">الاسم</label>
+                <input asp-for="Name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="أدخل اسم الموظف" />
+                <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="Email" class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
+                <input asp-for="Email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@mail.com" />
+                <span asp-validation-for="Email" class="text-red-500 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="Password" class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
+                <input asp-for="Password" type="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="أدخل كلمة المرور" />
+                <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="Role" class="block text-sm font-semibold text-gray-700 mb-2">الدور</label>
+                <select asp-for="Role" asp-items="Model.Roles" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">-- اختر دوراً --</option>
+                </select>
+                <span asp-validation-for="Role" class="text-red-500 text-sm"></span>
+            </div>
+
+            <div class="flex justify-end space-x-4 space-x-reverse">
+                <a asp-action="Index" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg">إلغاء</a>
+                <button type="submit" class="px-6 py-3 bg-green-600 text-white rounded-lg">حفظ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

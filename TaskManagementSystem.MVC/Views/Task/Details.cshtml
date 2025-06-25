@@ -1,0 +1,525 @@
+﻿@model TaskManagementSystem.MVC.Models.TaskDetailsViewModel
+@{
+     Layout = "_Layout";
+    ViewData["Title"] = "تفاصيل المهمة";
+}
+
+
+<div class="task-details-container">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <!-- شريط التنقل -->
+        <div class="mb-6">
+            <nav class="flex items-center text-sm text-gray-600">
+                <a asp-controller="Task" asp-action="Index" class="hover:text-blue-600 transition-colors">
+                    <i class="fas fa-tasks ml-1"></i>
+                    المهام
+                </a>
+                <i class="fas fa-chevron-left mx-2"></i>
+                <span class="text-gray-800 font-medium">تفاصيل المهمة</span>
+            </nav>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- بطاقة تفاصيل المهمة -->
+            <div class="lg:col-span-1">
+                <div class="task-card">
+                    <div class="p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-tasks text-white text-2xl"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800">تفاصيل المهمة</h2>
+                            <p class="text-gray-600 text-sm">معلومات شاملة عن المهمة</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-heading"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">العنوان</div>
+                                    <div class="detail-value font-semibold">@Model.Task.Title</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-align-left"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">الوصف</div>
+                                    <div class="detail-value">@Model.Task.Description</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-flag"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">الحالة</div>
+                                    <div class="detail-value">
+                                        <span class="status-badge status-@(Model.Task.Status == "Completed" ? "completed" : Model.Task.Status == "Overdue" ? "overdue" : "pending")">
+                                            @if (Model.Task.Status == "Completed")
+                                            {
+                                                <i class="fas fa-check-circle"></i>
+                                            }
+                                            else if (Model.Task.Status == "Overdue")
+                                            {
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-clock"></i>
+                                            }
+                                            @Model.Task.Status
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-exclamation"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">الأولوية</div>
+                                    <div class="detail-value">
+                                        <span class="priority-badge priority-@Model.Task.Priority.ToLower()">
+                                            @Model.Task.Priority
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">النظام</div>
+                                    <div class="detail-value">@Model.Task.System</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">تاريخ الانتهاء</div>
+                                    <div class="detail-value">@Model.Task.DueDate?.ToString("dd/MM/yyyy")</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-label">المسؤول</div>
+                                    <div class="detail-value font-semibold">@Model.Task.AssignedToName</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- أزرار الإجراءات -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="flex flex-col gap-3">
+                                <a asp-controller="Task" asp-action="Edit" asp-route-id="@Model.Task.Id" 
+                                   class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg text-center font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
+                                    <i class="fas fa-edit ml-2"></i>
+                                    تعديل المهمة
+                                </a>
+                                <a asp-controller="Task" asp-action="Index" 
+                                   class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg text-center font-medium hover:bg-gray-200 transition-all duration-200">
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                    العودة للقائمة
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- قسم التعليقات -->
+            <div class="lg:col-span-2">
+                <div class="comments-section">
+                    <!-- رأس التعليقات -->
+                    <div class="comments-header">
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center ml-4">
+                                        <i class="fas fa-comments text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-xl font-bold">التعليقات والمناقشات</h2>
+                                        <p class="text-blue-100 text-sm">تفاعل مع فريق العمل</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white bg-opacity-20 rounded-full px-4 py-2">
+                                    <span id="commentsCount" class="text-white font-semibold">@Model.Comments.Count تعليق</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نموذج إضافة تعليق جديد -->
+                    <div class="comment-form-section">
+                        <form id="commentForm" class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-3">
+                                    <i class="fas fa-comment-dots ml-2 text-blue-600"></i>
+                                    إضافة تعليق جديد
+                                </label>
+                                <textarea id="commentText" 
+                                          class="comment-textarea" 
+                                          placeholder="شارك أفكارك أو تحديثات حول هذه المهمة..."
+                                          required></textarea>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-info-circle ml-2 text-blue-500"></i>
+                                    <span>سيتم إرسال إشعار فوري لجميع المشاركين</span>
+                                </div>
+                                <button type="submit" id="submitComment" class="submit-btn">
+                                    <div id="submitSpinner" class="loading-spinner hidden"></div>
+                                    <span id="submitText">نشر التعليق</span>
+                                    <i id="submitIcon" class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- قائمة التعليقات -->
+                    <div id="commentsList">
+                        @if (Model.Comments.Any())
+                        {
+                            @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                            {
+                                <div class="comment-item">
+                                    <div class="flex items-start">
+                                        <div class="comment-avatar">
+                                            @comment.UserName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div class="comment-content">
+                                            <div class="comment-meta">
+                                                <span class="comment-author">@comment.UserName</span>
+                                                <span class="comment-time">
+                                                    <i class="fas fa-clock ml-1"></i>
+                                                    @comment.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy - HH:mm")
+                                                </span>
+                                            </div>
+                                            <div class="comment-text">@comment.CommentText</div>
+                                            <div class="comment-actions">
+                                                <span class="comment-action-btn">
+                                                    <i class="fas fa-reply ml-1"></i>
+                                                    رد
+                                                </span>
+                                                <span class="comment-action-btn">
+                                                    <i class="fas fa-heart ml-1"></i>
+                                                    إعجاب
+                                                </span>
+                                                <span class="comment-action-btn">
+                                                    <i class="fas fa-share ml-1"></i>
+                                                    مشاركة
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fas fa-comments text-4xl mb-4 text-gray-300"></i>
+                                <h3 class="text-lg font-semibold mb-2">لا توجد تعليقات بعد</h3>
+                                <p>كن أول من يضيف تعليقاً على هذه المهمة</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- إشعار النجاح/الخطأ -->
+<div id="notificationToast" class="notification-toast">
+    <div class="flex items-center">
+        <i id="toastIcon" class="fas fa-check-circle text-green-500 ml-3"></i>
+        <div class="flex-1">
+            <div id="toastTitle" class="font-semibold text-gray-800"></div>
+            <div id="toastMessage" class="text-gray-600 text-sm"></div>
+        </div>
+        <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 ml-3">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<!-- JavaScript للتفاعل -->
+
+<script>
+    class TaskDetailsManager {
+        constructor() {
+            this.taskId = @Model.Task.Id;
+            this.init();
+        }
+
+        init() {
+            this.bindEvents();
+            //this.setupSignalR();
+        }
+
+        bindEvents() {
+            const commentForm = document.getElementById('commentForm');
+            if (commentForm) {
+                commentForm.addEventListener('submit', (e) => this.handleCommentSubmit(e));
+            }
+
+            // تحسين تجربة textarea
+            const commentText = document.getElementById('commentText');
+            if (commentText) {
+                commentText.addEventListener('input', this.autoResize);
+                commentText.addEventListener('focus', () => {
+                    commentText.parentElement.classList.add('focused');
+                });
+                commentText.addEventListener('blur', () => {
+                    commentText.parentElement.classList.remove('focused');
+                });
+            }
+        }
+
+        autoResize(e) {
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+        }
+
+        async handleCommentSubmit(e) {
+            e.preventDefault();
+            
+            const commentText = document.getElementById('commentText');
+            const submitBtn = document.getElementById('submitComment');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const submitText = document.getElementById('submitText');
+            const submitIcon = document.getElementById('submitIcon');
+            
+            if (!commentText.value.trim()) {
+                this.showToast('تنبيه', 'يرجى كتابة تعليق قبل الإرسال', 'warning');
+                return;
+            }
+
+            // إظهار حالة التحميل
+            this.setLoadingState(submitBtn, submitSpinner, submitText, submitIcon, true);
+
+            try {
+                const response = await fetch('/Task/AddComment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': this.getAntiForgeryToken()
+                    },
+                    body: JSON.stringify({
+                        taskId: this.taskId,
+                        commentText: commentText.value.trim()
+                    })
+                });
+
+
+
+                //const response = await fetch('/Task/AddComment', {
+                //    method: 'POST',
+                //    headers: {
+                //        'Content-Type': 'application/json',
+                //        'RequestVerificationToken': this.getAntiForgeryToken()
+                //    },
+                //    body: JSON.stringify({
+                //        taskId: this.taskId,
+                //        commentText: commentText.value.trim()
+                //    })
+                //});
+
+                if (response.ok) {
+                    const result = await response.json();
+                    this.addCommentToList(result);
+                    commentText.value = '';
+                    commentText.style.height = 'auto';
+                    this.updateCommentsCount(1);
+                    this.showToast('نجح!', 'تم إضافة التعليق بنجاح', 'success');
+                } else {
+                    throw new Error('فشل في إضافة التعليق');
+                }
+            } catch (error) {
+                console.error('خطأ:', error);
+                this.showToast('خطأ', 'حدث خطأ أثناء إضافة التعليق', 'error');
+            } finally {
+                this.setLoadingState(submitBtn, submitSpinner, submitText, submitIcon, false);
+            }
+        }
+
+        setLoadingState(button, spinner, text, icon, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                spinner.classList.remove('hidden');
+                text.textContent = 'جاري الإرسال...';
+                icon.style.display = 'none';
+            } else {
+                button.disabled = false;
+                spinner.classList.add('hidden');
+                text.textContent = 'نشر التعليق';
+                icon.style.display = 'inline';
+            }
+        }
+
+        addCommentToList(comment) {
+            const commentsList = document.getElementById('commentsList');
+            const emptyState = commentsList.querySelector('.text-center');
+            
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const commentElement = this.createCommentElement(comment);
+            commentsList.insertAdjacentHTML('afterbegin', commentElement);
+            
+            // إضافة تأثير الظهور
+            const newComment = commentsList.firstElementChild;
+            newComment.style.opacity = '0';
+            newComment.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                newComment.style.transition = 'all 0.3s ease';
+                newComment.style.opacity = '1';
+                newComment.style.transform = 'translateY(0)';
+            }, 100);
+        }
+
+        createCommentElement(comment) {
+            const now = new Date();
+            return `
+                <div class="comment-item">
+                    <div class="flex items-start">
+                        <div class="comment-avatar">
+                            ${comment.userName.substring(0, 1).toUpperCase()}
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-meta">
+                                <span class="comment-author">${comment.userName}</span>
+                                <span class="comment-time">
+                                    <i class="fas fa-clock ml-1"></i>
+                                    الآن
+                                </span>
+                            </div>
+                            <div class="comment-text">${comment.commentText}</div>
+                            <div class="comment-actions">
+                                <span class="comment-action-btn">
+                                    <i class="fas fa-reply ml-1"></i>
+                                    رد
+                                </span>
+                                <span class="comment-action-btn">
+                                    <i class="fas fa-heart ml-1"></i>
+                                    إعجاب
+                                </span>
+                                <span class="comment-action-btn">
+                                    <i class="fas fa-share ml-1"></i>
+                                    مشاركة
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        updateCommentsCount(increment) {
+            const countElement = document.getElementById('commentsCount');
+            if (countElement) {
+                const currentCount = parseInt(countElement.textContent.match(/\d+/)[0]);
+                const newCount = currentCount + increment;
+                countElement.textContent = `${newCount} تعليق`;
+            }
+        }
+
+        showToast(title, message, type = 'success') {
+            const toast = document.getElementById('notificationToast');
+            const icon = document.getElementById('toastIcon');
+            const titleElement = document.getElementById('toastTitle');
+            const messageElement = document.getElementById('toastMessage');
+
+            // تعيين الأيقونة والألوان حسب النوع
+            const config = {
+                success: { icon: 'fas fa-check-circle text-green-500', class: 'success' },
+                error: { icon: 'fas fa-times-circle text-red-500', class: 'error' },
+                warning: { icon: 'fas fa-exclamation-triangle text-yellow-500', class: 'warning' }
+            };
+
+            const typeConfig = config[type] || config.success;
+            
+            icon.className = typeConfig.icon + ' ml-3';
+            toast.className = `notification-toast ${typeConfig.class}`;
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+
+            // إظهار الإشعار
+            toast.classList.add('show');
+
+            // إخفاء الإشعار تلقائياً بعد 5 ثوانٍ
+            setTimeout(() => {
+                this.hideToast();
+            }, 5000);
+        }
+
+        hideToast() {
+            const toast = document.getElementById('notificationToast');
+            toast.classList.remove('show');
+        }
+
+        getAntiForgeryToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        }
+
+        setupSignalR() {
+            // إعداد SignalR للإشعارات المباشرة
+            try {
+                    const userId = "@Context.Session.GetString("UserId")";
+
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl("https://localhost:7172/notificationHub?userId=" + userId)
+                    .build();
+
+                connection.start().then(() => {
+                    connection.invoke("JoinTaskGroup", this.taskId);
+                }).catch(err => console.error('SignalR Error:', err));
+
+                connection.on("CommentAdded", (comment) => {
+                    this.addCommentToList(comment);
+                    this.updateCommentsCount(1);
+                    this.showToast('تعليق جديد', `${comment.userName} أضاف تعليقاً جديداً`, 'success');
+                });
+            } catch (error) {
+                console.log('SignalR not available:', error);
+            }
+        }
+    }
+
+    // دوال عامة
+    function hideToast() {
+        document.getElementById('notificationToast').classList.remove('show');
+    }
+
+    // تهيئة النظام عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        window.taskDetailsManager = new TaskDetailsManager();
+    });
+</script>
+
+@Html.AntiForgeryToken()
+
+
+
+

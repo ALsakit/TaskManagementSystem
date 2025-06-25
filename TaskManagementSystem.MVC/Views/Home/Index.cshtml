@@ -1,8 +1,476 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model TaskManagementSystem.MVC.Models.DashboardViewModel
+@{
+     Layout = "_Layout";
+    ViewData["Title"] = "لوحة التحكم الرئيسية";
+    var userName = Context.Session.GetString("UserName") ?? "المستخدم";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+
+<div class="dashboard-container">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <!-- قسم الترحيب -->
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-2">مرحباً بك، @userName</h1>
+                        <p class="text-blue-100 text-lg">إليك نظرة سريعة على أداء مهامك اليوم</p>
+                        <div class="flex items-center gap-4 mt-4 text-blue-100">
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-calendar-day"></i>
+                                @DateTime.Now.ToString("dddd، dd MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"))
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-clock"></i>
+                                @DateTime.Now.ToString("HH:mm")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="notification-bell">
+                            <i class="fas fa-bell text-xl"></i>
+                            @if (Model.OverdueTasks > 0)
+                            {
+                                <span class="notification-badge">@Model.OverdueTasks</span>
+                            }
+                        </button>
+                        <button id="newTaskBtn" class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            مهمة جديدة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بطاقات الإحصائيات -->
+        <div class="stats-grid">
+            <div class="stat-card new-tasks">
+                <div class="flex items-center">
+                    <div class="stat-icon" style="--icon-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8); --icon-color: #3b82f6;">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="stat-number">@Model.NewTasks</div>
+                        <div class="stat-label">مهام جديدة</div>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12% من الأسبوع الماضي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card in-progress">
+                <div class="flex items-center">
+                    <div class="stat-icon" style="--icon-gradient: linear-gradient(135deg, #f59e0b, #d97706); --icon-color: #f59e0b;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="stat-number">@Model.InProgressTasks</div>
+                        <div class="stat-label">قيد التنفيذ</div>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8% من الأسبوع الماضي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card completed">
+                <div class="flex items-center">
+                    <div class="stat-icon" style="--icon-gradient: linear-gradient(135deg, #10b981, #059669); --icon-color: #10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="stat-number">@Model.CompletedTasks</div>
+                        <div class="stat-label">مكتملة</div>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+25% من الأسبوع الماضي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card overdue">
+                <div class="flex items-center">
+                    <div class="stat-icon" style="--icon-gradient: linear-gradient(135deg, #ef4444, #dc2626); --icon-color: #ef4444;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="stat-number">@Model.OverdueTasks</div>
+                        <div class="stat-label">متأخرة</div>
+                        <div class="stat-trend trend-down">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-5% من الأسبوع الماضي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الرسوم البيانية -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">توزيع المهام</h3>
+                        <p class="chart-subtitle">حسب الحالة</p>
+                    </div>
+                </div>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="tasksDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">الأداء الأسبوعي</h3>
+                        <p class="chart-subtitle">المهام المكتملة</p>
+                    </div>
+                </div>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="weeklyPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإجراءات السريعة -->
+        <div class="quick-actions">
+            <div class="quick-action-card" onclick="createNewTask()">
+                <div class="quick-action-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="quick-action-title">إنشاء مهمة</div>
+                <div class="quick-action-desc">أضف مهمة جديدة بسرعة</div>
+            </div>
+
+            <div class="quick-action-card" onclick="viewReports()">
+                <div class="quick-action-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="quick-action-title">التقارير</div>
+                <div class="quick-action-desc">عرض التقارير التفصيلية</div>
+            </div>
+
+            <div class="quick-action-card" onclick="manageTeam()">
+                <div class="quick-action-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="quick-action-title">إدارة الفريق</div>
+                <div class="quick-action-desc">إدارة أعضاء الفريق</div>
+            </div>
+
+            <div class="quick-action-card" onclick="viewCalendar()">
+                <div class="quick-action-icon">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="quick-action-title">التقويم</div>
+                <div class="quick-action-desc">عرض جدولة المهام</div>
+            </div>
+        </div>
+
+        <!-- المهام الأخيرة -->
+        <div class="recent-tasks-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-history text-blue-600"></i>
+                    المهام الأخيرة
+                </h3>
+                <a asp-controller="Task" asp-action="Index" class="view-all-btn">
+                    عرض جميع المهام
+                    <i class="fas fa-arrow-left mr-1"></i>
+                </a>
+            </div>
+
+            <div class="tasks-list">
+                @if (Model.RecentTasks?.Any() == true)
+                {
+                    @foreach (var task in Model.RecentTasks)
+                    {
+                        var statusInfo = task.Status switch
+                        {
+                            "Pending" => ("جديدة", "status-new"),
+                            "InProgress" => ("قيد التنفيذ", "status-progress"),
+                            "Completed" => ("مكتملة", "status-completed"),
+                            "Overdue" => ("متأخرة", "status-overdue"),
+                            _ => ("غير معروفة", "status-new")
+                        };
+
+                        <div class="task-item">
+                            <div class="task-header">
+                                <div class="flex-1">
+                                    <h4 class="task-title">@task.Title</h4>
+                                    <div class="task-meta">
+                                        <span class="status-badge @statusInfo.Item2">@statusInfo.Item1</span>
+                                        <span class="task-meta-item">
+                                            <i class="fas fa-user"></i>
+                                            @task.AssignedTo
+                                        </span>
+                                        <span class="task-meta-item">
+                                            <i class="fas fa-calendar"></i>
+                                            @task.AssignedAt.ToString("dd MMM yyyy")
+                                        </span>
+                                        <span class="task-meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            @task.AssignedAt.ToString("HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
+                               
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <h3>لا توجد مهام حديثة</h3>
+                        <p>ابدأ بإنشاء مهمة جديدة لرؤية النشاط هنا</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- JavaScript للرسوم البيانية والتفاعل -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    class DashboardManager {
+        constructor() {
+            this.charts = {};
+            this.init();
+        }
+
+        init() {
+            this.initCharts();
+            this.bindEvents();
+            this.startRealTimeUpdates();
+        }
+
+        initCharts() {
+            this.initTasksDistributionChart();
+            this.initWeeklyPerformanceChart();
+        }
+
+        initTasksDistributionChart() {
+            const ctx = document.getElementById('tasksDistributionChart').getContext('2d');
+            
+            this.charts.distribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['جديدة', 'قيد التنفيذ', 'مكتملة', 'متأخرة'],
+                    datasets: [{
+                        data: [@Model.NewTasks, @Model.InProgressTasks, @Model.CompletedTasks, @Model.OverdueTasks],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#10b981',
+                            '#ef4444'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Cairo',
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true
+                        }
+                    },
+                    cutout: '60%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 1000
+                    }
+                }
+            });
+        }
+
+        initWeeklyPerformanceChart() {
+            const ctx = document.getElementById('weeklyPerformanceChart').getContext('2d');
+            
+            // بيانات وهمية للأسبوع الماضي
+            const weeklyData = [12, 19, 15, 25, 22, 18, 30];
+            const labels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+
+            this.charts.weekly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'المهام المكتملة',
+                        data: weeklyData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Cairo'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Cairo'
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        bindEvents() {
+            // زر المهمة الجديدة
+            document.getElementById('newTaskBtn')?.addEventListener('click', () => {
+                this.createNewTask();
+            });
+
+            // جرس الإشعارات
+            document.querySelector('.notification-bell')?.addEventListener('click', () => {
+                this.showNotifications();
+            });
+        }
+
+        createNewTask() {
+            // يمكن فتح نموذج منبثق أو التوجه لصفحة الإنشاء
+            window.location.href = '/Task/Create';
+        }
+
+        showNotifications() {
+            // عرض قائمة الإشعارات
+            alert('عرض الإشعارات - يمكن تطوير هذا لاحقاً');
+        }
+
+        startRealTimeUpdates() {
+            // تحديث البيانات كل 30 ثانية
+            setInterval(() => {
+                this.updateCharts();
+            }, 30000);
+        }
+
+        updateCharts() {
+            // تحديث البيانات من الخادم
+            fetch('/Dashboard/GetLatestStats')
+                .then(response => response.json())
+                .then(data => {
+                    this.updateDistributionChart(data);
+                })
+                .catch(error => console.log('تحديث البيانات غير متاح:', error));
+        }
+
+        updateDistributionChart(data) {
+            if (this.charts.distribution && data) {
+                this.charts.distribution.data.datasets[0].data = [
+                    data.newTasks,
+                    data.inProgressTasks,
+                    data.completedTasks,
+                    data.overdueTasks
+                ];
+                this.charts.distribution.update();
+            }
+        }
+    }
+
+    // دوال الإجراءات السريعة
+    function createNewTask() {
+        window.location.href = '/Task/Create';
+    }
+
+    function viewReports() {
+        window.location.href = '/Dashboard/Reports';
+    }
+
+    function manageTeam() {
+        window.location.href = '/Employee/Index';
+    }
+
+    function viewCalendar() {
+        window.location.href = '/Dashboard/Calendar';
+    }
+
+    // تهيئة النظام عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        window.dashboardManager = new DashboardManager();
+        
+        // تأثيرات الظهور التدريجي
+        const cards = document.querySelectorAll('.stat-card, .chart-card, .quick-action-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
