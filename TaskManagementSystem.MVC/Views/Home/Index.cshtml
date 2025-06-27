@@ -3,6 +3,7 @@
      Layout = "_Layout";
     ViewData["Title"] = "لوحة التحكم الرئيسية";
     var userName = Context.Session.GetString("UserName") ?? "المستخدم";
+
 }
 
 
@@ -35,6 +36,7 @@
                                 <span class="notification-badge">@Model.OverdueTasks</span>
                             }
                         </button>
+
                         <button id="newTaskBtn" class="btn-primary">
                             <i class="fas fa-plus"></i>
                             مهمة جديدة

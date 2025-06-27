@@ -1,15 +1,4 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-
-//namespace TaskManagementSystem.MVC.Controllers
-//{
-//    public class AuthController : Controller
-//    {
-//        public IActionResult Index()
-//        {
-//            return View();
-//        }
-//    }
-//}
+﻿
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -61,7 +50,7 @@ namespace TaskManagementSystem.MVC.Controllers
                 Name = model.Name,
                 Email = model.Email,
                 Password = model.Password,
-                Role = "User" // أو model.Role إذا عرضت حقل الدور للمستخدم
+                Role = "Admin" // أو model.Role إذا عرضت حقل الدور للمستخدم
             };
 
             var client = _clientFactory.CreateClient();

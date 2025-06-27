@@ -40,7 +40,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-green-100 text-sm font-medium">المهام المكتملة</p>
-                <p class="text-3xl font-bold">@(Model.StatusCounts.FirstOrDefault(s => s.Status == "مكتملة")?.Count ?? 0)</p>
+                <p class="text-3xl font-bold">@(Model.StatusCounts.FirstOrDefault(s => s.Status == "Completed")?.Count ?? 0)</p>
             </div>
             <div class="bg-white bg-opacity-20 rounded-full p-3">
                 <i class="fas fa-check-circle text-2xl"></i>
@@ -53,7 +53,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-yellow-100 text-sm font-medium">قيد التنفيذ</p>
-                <p class="text-3xl font-bold">@(Model.StatusCounts.FirstOrDefault(s => s.Status == "قيد التنفيذ")?.Count ?? 0)</p>
+                <p class="text-3xl font-bold">@(Model.StatusCounts.FirstOrDefault(s => s.Status == "InProgress")?.Count ?? 0)</p>
             </div>
             <div class="bg-white bg-opacity-20 rounded-full p-3">
                 <i class="fas fa-clock text-2xl"></i>
@@ -113,7 +113,7 @@
                     <span class="text-lg font-bold text-green-600">
                         @{
                             var totalTasks = Model.StatusCounts.Sum(s => s.Count);
-                            var completedTasks = Model.StatusCounts.FirstOrDefault(s => s.Status == "مكتملة")?.Count ?? 0;
+                            var completedTasks = Model.StatusCounts.FirstOrDefault(s => s.Status == "Completed")?.Count ?? 0;
                             var completionRate = totalTasks > 0 ? (completedTasks * 100.0 / totalTasks) : 0;
                         }
                         @completionRate.ToString("F1")%

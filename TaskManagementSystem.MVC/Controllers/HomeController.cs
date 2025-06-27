@@ -73,7 +73,9 @@ namespace TaskManagementSystem.MVC.Controllers
                 AverageDuration = avgDur,
                 UserPerformances = userPerformances,
                 RecentTasks = recentTasks
+                 
             };
+
 
             return View(model);
         }

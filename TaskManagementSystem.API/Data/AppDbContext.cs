@@ -11,7 +11,7 @@ namespace TaskManagementSystem.API.Data
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
+    
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -26,6 +26,10 @@
         <div class="text-2xl font-bold text-blue-600" id="totalTasks">@Model.Count()</div>
         <div class="text-gray-600">إجمالي المهام</div>
     </div>
+     @*<div class="stat-card">
+        <div class="text-2xl font-bold text-yellow-600" id="pendingTasks">@Model.Count(t => t.Status == "Pending" )</div>
+        <div class="text-gray-600">مهام جديدة/div>
+    </div>*@
     <div class="stat-card">
         <div class="text-2xl font-bold text-green-600" id="completedTasks">@Model.Count(t => t.Status == "Completed")</div>
         <div class="text-gray-600">مهام مكتملة</div>
@@ -34,8 +38,9 @@
         <div class="text-2xl font-bold text-red-600" id="overdueTasks">@Model.Count(t => t.Status == "Overdue")</div>
         <div class="text-gray-600">مهام متأخرة</div>
     </div>
-    <div class="stat-card">
-        <div class="text-2xl font-bold text-yellow-600" id="pendingTasks">@Model.Count(t => t.Status != "Completed" && t.Status != "Overdue")</div>
+   
+     <div class="stat-card">
+        <div class="text-2xl font-bold text-yellow-600" id="pendingTasks">@Model.Count(t => t.Status == "InProgress")</div>
         <div class="text-gray-600">مهام قيد التنفيذ</div>
     </div>
 </div>
@@ -58,7 +63,8 @@
         <option value="">جميع الحالات</option>
         <option value="Completed">مكتملة</option>
         <option value="Overdue">متأخرة</option>
-        <option value="Pending">قيد التنفيذ</option>
+        <option value="InProgress">قيد التنفيذ</option>
+         <option value="Pending">جديدة</option>
     </select>
 </div>
 

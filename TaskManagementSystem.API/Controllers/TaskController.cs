@@ -269,6 +269,71 @@ namespace TaskManagementSystem.API.Controllers
             _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
+            try
+            {
+                // استرجاع معلومات المستخدم المعيّن
+                var assignedUser = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == existing.AssignedToUserId);
+
+                if (assignedUser != null)
+                {
+                    var notifForAssigned = new Notification
+                    {
+                        Title = $"تم تعديل مهمة: {existing.Title}",
+                        Content = $"تم تعديل المهمة '{existing.Title}' التي تم تعيينها لك.",
+                        UserId = assignedUser.Id,
+                        TaskId = existing.Id,
+                        Type = NotificationType.TaskUpdated,
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(notifForAssigned);
+
+                    // إرسال الإشعار عبر SignalR
+                    await _hubContext.Clients.Group(assignedUser.Id.ToString())
+                        .SendAsync("ReceiveNotification", new
+                        {
+                            userId = assignedUser.Id,
+                            title = notifForAssigned.Title,
+                            content = notifForAssigned.Content,
+                            createdAt = notifForAssigned.CreatedDate.ToString("g")
+                        });
+                }
+
+                // إشعار المديرين والمشرفين
+                var adminsAndManagers = await _context.Users
+                    .Where(u => u.Role == "Manager" || u.Role == "Admin")
+                    .ToListAsync();
+
+                foreach (var recipient in adminsAndManagers)
+                {
+                    var notif = new Notification
+                    {
+                        Title = $"تم تعديل مهمة: {existing.Title}",
+                        Content = $"تم تعديل مهمة بعنوان '{existing.Title}'",
+                        UserId = recipient.Id,
+                        TaskId = existing.Id,
+                        Type = NotificationType.TaskUpdated,
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(notif);
+
+                    await _hubContext.Clients.Group(recipient.Id.ToString())
+                        .SendAsync("ReceiveNotification", new
+                        {
+                            userId = recipient.Id,
+                            title = notif.Title,
+                            content = notif.Content,
+                            createdAt = notif.CreatedDate.ToString("g")
+                        });
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating or sending update notifications");
+            }
             return NoContent();
         }
 
