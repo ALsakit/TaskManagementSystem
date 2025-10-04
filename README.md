@@ -43,4 +43,4 @@ ________________________________________
 •	Authentication and Security: JWT Authentication
 •	Architecture: Monolithic
 
-اريد تصميم اجمل ...اريد الشغل يلبي المتطلبات 
+ 
